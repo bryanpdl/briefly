@@ -68,7 +68,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, initialData }) => {
     setError(null);
     try {
       await onSubmit({ ...formData, projectType: projectType.value });
-    } catch (err) {
+    } catch {
       setError('Failed to generate brief. Please try again.');
     } finally {
       setIsLoading(false);
