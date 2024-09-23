@@ -24,7 +24,7 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, onEdit }) => {
           Edit Brief
         </button>
         <BlobProvider document={<PDFDocument brief={brief} />}>
-          {({ url, loading, error }) => (
+          {({ url, loading }) => (
             <a
               href={url || '#'}
               download="project_brief.pdf"
