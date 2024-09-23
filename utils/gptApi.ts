@@ -11,15 +11,24 @@ interface ProjectFormData {
   goals: string;
   deadline: string;
   budget: string;
+  budgetBreakdown: { item: string; amount: string }[];
 }
 
 export async function generateBrief(formData: ProjectFormData) {
-  const prompt = `Generate a professional project brief based on the following information:
+  const budgetBreakdown = formData.budgetBreakdown
+    .map(item => `${item.item}: $${item.amount}`)
+    .join('\n');
+
+  const prompt = `Generate a professional project brief from the perspective of the client based on the following information:
     Project Type: ${formData.projectType}
     Project Name: ${formData.projectName}
     Goals: ${formData.goals}
     Deadline: ${formData.deadline}
-    Budget: $${formData.budget}`;
+    Budget: $${formData.budget}
+    Budget Breakdown:
+    ${budgetBreakdown}
+    
+    The brief should be written as if the client is describing their project requirements and expectations. Avoid using phrases that imply the brief is written by the design team.`;
 
   const response = await openai.chat.completions.create({
     model: "gpt-4",

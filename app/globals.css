@@ -9,6 +9,12 @@
   --input-border: #d1d1d1;
   --primary: #007bff;
   --primary-hover: #0056b3;
+  --secondary: #6c757d;
+  --secondary-hover: #5a6268;
+  --success: #28a745;
+  --success-hover: #218838;
+  --danger: #dc3545;
+  --danger-hover: #c82333;
 }
 
 body {
@@ -32,5 +38,14 @@ body {
   }
   .btn-primary {
     @apply px-6 py-3 text-base font-medium text-white bg-primary rounded-lg hover:bg-primary-hover transition duration-300 ease-in-out;
+  }
+  .btn-secondary {
+    @apply px-6 py-3 text-base font-medium text-white bg-secondary rounded-lg hover:bg-secondary-hover transition duration-300 ease-in-out;
+  }
+  .btn-success {
+    @apply px-6 py-3 text-base font-medium text-white bg-success rounded-lg hover:bg-success-hover transition duration-300 ease-in-out;
+  }
+  .btn-danger {
+    @apply px-6 py-3 text-base font-medium text-white bg-danger rounded-lg hover:bg-danger-hover transition duration-300 ease-in-out;
   }
 }

@@ -11,30 +11,37 @@ interface ProjectFormData {
   goals: string;
   deadline: string;
   budget: string;
+  budgetBreakdown: { item: string; amount: string }[];
 }
 
 export default function Home() {
   const [brief, setBrief] = useState('');
   const [showForm, setShowForm] = useState(true);
   const [isClient, setIsClient] = useState(false);
+  const [formData, setFormData] = useState<ProjectFormData | null>(null);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  const handleFormSubmit = async (formData: ProjectFormData) => {
+  const handleFormSubmit = async (data: ProjectFormData) => {
     if (!isClient) return;
     try {
-      const generatedBrief = await generateBrief(formData);
+      const generatedBrief = await generateBrief(data);
       setBrief(generatedBrief);
+      setFormData(data);
       setShowForm(false);
     } catch (error) {
       console.error('Error generating brief:', error);
-      // Handle error (e.g., show error message to user)
     }
   };
 
   const handleEditBrief = () => {
+    setShowForm(true);
+  };
+
+  const handleCreateNewBrief = () => {
+    setFormData(null);
     setShowForm(true);
   };
 
@@ -46,9 +53,9 @@ export default function Home() {
     <div className="container mx-auto px-4 py-12">
       <h1 className="text-center">Project Brief Generator</h1>
       {showForm ? (
-        <ProjectForm onSubmit={handleFormSubmit} />
+        <ProjectForm onSubmit={handleFormSubmit} initialData={formData} />
       ) : (
-        <ProjectBrief brief={brief} onEdit={handleEditBrief} />
+        <ProjectBrief brief={brief} onEdit={handleEditBrief} onCreateNew={handleCreateNewBrief} />
       )}
     </div>
   );

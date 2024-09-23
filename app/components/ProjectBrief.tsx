@@ -5,11 +5,15 @@ import { PDFDocument } from './PDFDocument';
 interface ProjectBriefProps {
   brief: string;
   onEdit: () => void;
+  onCreateNew: () => void;
 }
 
-const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, onEdit }) => {
+const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, onEdit, onCreateNew }) => {
   const handleShare = () => {
-    // Implement email sharing logic
+    const subject = encodeURIComponent('Project Brief');
+    const body = encodeURIComponent(`Here is the project brief:\n\n${brief}`);
+    const mailtoLink = `mailto:?subject=${subject}&body=${body}`;
+    window.location.href = mailtoLink;
   };
 
   return (
@@ -40,6 +44,12 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, onEdit }) => {
           className="btn-primary bg-green-600 hover:bg-green-700"
         >
           Share via Email
+        </button>
+        <button
+          onClick={onCreateNew}
+          className="btn-primary bg-blue-600 hover:bg-blue-700"
+        >
+          Create New Brief
         </button>
       </div>
     </div>

@@ -1,65 +1,87 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
 import { Root, Field, Label, Control, Submit } from '@radix-ui/react-form';
-import * as Select from '@radix-ui/react-select';
 
-const projectTypes = [
-  { value: 'design', label: 'Design' },
-  { value: 'construction', label: 'Construction' },
-  { value: 'business', label: 'Business' },
-  { value: 'healthcare', label: 'Healthcare' },
-];
+const projectType = { value: 'design', label: 'Design' };
 
 interface FormData {
   projectName: string;
   goals: string;
   deadline: string;
   budget: string;
+  budgetBreakdown: { item: string; amount: string }[];
 }
 
 interface ProjectFormProps {
   onSubmit: (data: FormData & { projectType: string }) => void;
+  initialData?: FormData | null;
 }
 
-const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit }) => {
-  const [projectType, setProjectType] = useState('');
+const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, initialData }) => {
   const [formData, setFormData] = useState<FormData>({
-    projectName: '',
-    goals: '',
-    deadline: '',
-    budget: '',
+    projectName: initialData?.projectName || '',
+    goals: initialData?.goals || '',
+    deadline: initialData?.deadline || '',
+    budget: initialData?.budget || '',
+    budgetBreakdown: initialData?.budgetBreakdown || [{ item: '', amount: '' }],
   });
+
+  const [showBudgetBreakdown, setShowBudgetBreakdown] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
+    setFormData(prevData => ({
       ...prevData,
       [name]: value,
     }));
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleBudgetBreakdownChange = (index: number, e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const newBudgetBreakdown = [...formData.budgetBreakdown];
+    newBudgetBreakdown[index] = { ...newBudgetBreakdown[index], [name]: value };
+    setFormData(prevData => ({
+      ...prevData,
+      budgetBreakdown: newBudgetBreakdown,
+    }));
+  };
+
+  const addBudgetBreakdownItem = () => {
+    setFormData(prevData => ({
+      ...prevData,
+      budgetBreakdown: [...prevData.budgetBreakdown, { item: '', amount: '' }],
+    }));
+  };
+
+  const removeBudgetBreakdownItem = (index: number) => {
+    const newBudgetBreakdown = formData.budgetBreakdown.filter((_, i) => i !== index);
+    setFormData(prevData => ({
+      ...prevData,
+      budgetBreakdown: newBudgetBreakdown,
+    }));
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSubmit({ ...formData, projectType });
+    setIsLoading(true);
+    setError(null);
+    try {
+      await onSubmit({ ...formData, projectType: projectType.value });
+    } catch (err) {
+      setError('Failed to generate brief. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <Root onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
       <Field name="projectType" className="mb-4">
         <Label className="block text-sm font-medium mb-2">Project Type</Label>
-        <Select.Root value={projectType} onValueChange={setProjectType}>
-          <Select.Trigger className="input-field">
-            <Select.Value placeholder="Select a project type" />
-          </Select.Trigger>
-          <Select.Content className="bg-white shadow-lg rounded-lg overflow-hidden">
-            <Select.Viewport>
-              {projectTypes.map((type) => (
-                <Select.Item key={type.value} value={type.value} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                  {type.label}
-                </Select.Item>
-              ))}
-            </Select.Viewport>
-          </Select.Content>
-        </Select.Root>
+        <div className="input-field flex items-center">
+          <span>{projectType.label}</span>
+        </div>
       </Field>
 
       <Field name="projectName" className="mb-4">
@@ -72,6 +94,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit }) => {
             onChange={handleInputChange}
             className="input-field"
             placeholder="Enter project name"
+            required
           />
         </Control>
       </Field>
@@ -86,6 +109,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit }) => {
             className="input-field"
             placeholder="Describe your project goals"
             rows={4}
+            required
           />
         </Control>
       </Field>
@@ -99,6 +123,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit }) => {
             value={formData.deadline}
             onChange={handleInputChange}
             className="input-field"
+            required
           />
         </Control>
       </Field>
@@ -112,14 +137,79 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit }) => {
             value={formData.budget}
             onChange={handleInputChange}
             className="input-field"
-            placeholder="Enter budget amount"
+            placeholder="Enter total budget amount"
+            required
           />
         </Control>
       </Field>
 
+      <Field name="showBudgetBreakdown" className="mb-4">
+        <Label className="block text-sm font-medium mb-2">Show Budget Breakdown</Label>
+        <Control asChild>
+          <input
+            type="checkbox"
+            name="showBudgetBreakdown"
+            checked={showBudgetBreakdown}
+            onChange={() => setShowBudgetBreakdown(!showBudgetBreakdown)}
+            className="mr-2"
+          />
+        </Control>
+      </Field>
+
+      {showBudgetBreakdown && (
+        <Field name="budgetBreakdown" className="mb-4">
+          <Label className="block text-sm font-medium mb-2">Budget Breakdown</Label>
+          {formData.budgetBreakdown.map((item, index) => (
+            <div key={index} className="flex items-center mb-2">
+              <Control asChild>
+                <input
+                  type="text"
+                  name="item"
+                  value={item.item}
+                  onChange={(e) => handleBudgetBreakdownChange(index, e)}
+                  className="input-field mr-2"
+                  placeholder="Item"
+                  required
+                />
+              </Control>
+              <Control asChild>
+                <input
+                  type="number"
+                  name="amount"
+                  value={item.amount}
+                  onChange={(e) => handleBudgetBreakdownChange(index, e)}
+                  className="input-field mr-2"
+                  placeholder="Amount"
+                  required
+                />
+              </Control>
+              <button
+                type="button"
+                onClick={() => removeBudgetBreakdownItem(index)}
+                className="btn-danger"
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={addBudgetBreakdownItem}
+            className="btn-success"
+          >
+            Add Item
+          </button>
+        </Field>
+      )}
+
+      {error && <p className="text-red-600">{error}</p>}
+
       <Submit asChild>
-        <button className="btn-primary w-full">
-          Generate Brief
+        <button
+          className={`btn-primary w-full ${isLoading ? 'bg-primary-hover cursor-not-allowed' : ''}`}
+          disabled={isLoading}
+        >
+          {isLoading ? 'Generating Brief...' : 'Generate Brief'}
         </button>
       </Submit>
     </Root>
