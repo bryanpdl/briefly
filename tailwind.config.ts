@@ -11,6 +11,10 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        'input-bg': "var(--input-bg)",
+        'input-border': "var(--input-border)",
+        primary: "var(--primary)",
+        'primary-hover': "var(--primary-hover)",
       },
     },
   },
