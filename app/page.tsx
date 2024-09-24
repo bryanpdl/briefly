@@ -28,6 +28,7 @@ export default function Home() {
     if (!isClient) return;
     try {
       const generatedBrief = await generateBrief(data);
+      console.log("Full generated brief:", generatedBrief); // Modified this line
       setBrief(generatedBrief);
       setFormData(data);
       setShowForm(false);
@@ -45,18 +46,32 @@ export default function Home() {
     setShowForm(true);
   };
 
+  const handleSaveBrief = (updatedBrief: string) => {
+    setBrief(updatedBrief);
+    // You might want to add some feedback here, like a toast notification
+    console.log('Brief updated successfully');
+  };
+
   if (!isClient) {
     return null; // or a loading spinner
   }
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <h1 className="text-center">Project Brief Generator</h1>
-      {showForm ? (
-        <ProjectForm onSubmit={handleFormSubmit} initialData={formData} />
-      ) : (
-        <ProjectBrief brief={brief} onEdit={handleEditBrief} onCreateNew={handleCreateNewBrief} />
-      )}
+      <div className="max-w-2xl mx-auto">
+        <h1 className="text-6xl mb-8 font-bold">briefly</h1>
+        {showForm ? (
+          <ProjectForm onSubmit={handleFormSubmit} initialData={formData} />
+        ) : (
+          <ProjectBrief 
+            brief={brief} 
+            projectName={formData?.projectName || ''} // Pass the project name
+            onEdit={handleEditBrief} 
+            onCreateNew={handleCreateNewBrief}
+            onSave={handleSaveBrief}
+          />
+        )}
+      </div>
     </div>
   );
 }

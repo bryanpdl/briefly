@@ -206,7 +206,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, initialData }) => {
 
       <Submit asChild>
         <button
-          className={`btn-primary w-full ${isLoading ? 'bg-primary-hover cursor-not-allowed' : ''}`}
+          className={`btn-primary w-full ${isLoading ? 'bg-secondary text-white hover:bg-secondary cursor-not-allowed' : ''}`}
           disabled={isLoading}
         >
           {isLoading ? 'Generating Brief...' : 'Generate Brief'}

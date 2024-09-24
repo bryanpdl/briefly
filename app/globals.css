@@ -28,7 +28,7 @@ body {
     @apply text-4xl font-bold mb-8;
   }
   h2 {
-    @apply text-2xl font-semibold mb-4;
+    @apply text-3xl font-semibold mb-4;
   }
 }
 
@@ -37,15 +37,68 @@ body {
     @apply w-full px-4 py-3 text-base border rounded-lg bg-input-bg border-input-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
   }
   .btn-primary {
-    @apply px-6 py-3 text-base font-medium text-white bg-primary rounded-lg hover:bg-primary-hover transition duration-300 ease-in-out;
+    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-gray-700 hover:text-white transition duration-300 ease-in-out;
+  }
+  .btn-icon {
+    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-gray-700 hover:text-white transition duration-300 ease-in-out;
   }
   .btn-secondary {
-    @apply px-6 py-3 text-base font-medium text-white bg-secondary rounded-lg hover:bg-secondary-hover transition duration-300 ease-in-out;
+    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-gray-700 hover:text-white transition duration-300 ease-in-out;
   }
   .btn-success {
-    @apply px-6 py-3 text-base font-medium text-white bg-success rounded-lg hover:bg-success-hover transition duration-300 ease-in-out;
+    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-gray-700 hover:text-white transition duration-300 ease-in-out;
   }
   .btn-danger {
-    @apply px-6 py-3 text-base font-medium text-white bg-danger rounded-lg hover:bg-danger-hover transition duration-300 ease-in-out;
+    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-gray-700 hover:text-white transition duration-300 ease-in-out;
+  }
+  .btn-inverted {
+    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-white bg-gray-700 border border-gray-700 rounded-md hover:bg-white hover:text-gray-700 hover:border-gray-300 transition duration-300 ease-in-out;
+  }
+  .btn-primary:hover .icon, .btn-icon:hover .icon, .btn-secondary:hover .icon, .btn-success:hover .icon, .btn-danger:hover .icon {
+    color: white;
+  }
+  .btn-inverted:hover .icon {
+    color: gray;
+  }
+  .btn-primary:hover, .btn-icon:hover, .btn-secondary:hover, .btn-success:hover, .btn-danger:hover {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+
+  .brief-container {
+    @apply p-6 bg-white rounded-lg shadow-sm border border-gray-200;
+  }
+  .brief-heading {
+    @apply text-4xl font-bold mb-4;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .brief-subheading {
+    @apply text-2xl font-bold text-gray-800 mb-3 !important;
+  }
+  .brief-subsubheading {
+    @apply text-xl font-semibold text-gray-700 mb-2 !important;
+  }
+  .brief-paragraph {
+    @apply mb-2 text-gray-600 !important;
+  }
+  .brief-list-item {
+    @apply mb-1 text-gray-600 list-disc list-inside !important;
+  }
+  .brief-numbered-list-item {
+    @apply mb-1 text-gray-600 list-decimal list-inside !important;
+  }
+  .brief-divider {
+    @apply border-t border-gray-300 my-4;
+  }
+  .brief-blockquote {
+    @apply pl-4 border-l-4 border-gray-300 italic text-gray-600 mb-4;
+  }
+  .brief-callout {
+    @apply p-4 bg-gray-100 border-l-4 border-gray-300 mb-4;
+  }
+  .btn-regenerate {
+    @apply flex items-center justify-center px-2 py-1 text-sm font-medium text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-gray-100 transition duration-300 ease-in-out;
   }
 }

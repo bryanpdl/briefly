@@ -12,18 +12,40 @@ const styles = StyleSheet.create({
     padding: 10,
     flexGrow: 1,
   },
+  heading: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  paragraph: {
+    fontSize: 12,
+    marginBottom: 5,
+  },
 });
 
 interface PDFDocumentProps {
   brief: string;
 }
 
-export const PDFDocument: React.FC<PDFDocumentProps> = ({ brief }) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      <View style={styles.section}>
-        <Text>{brief}</Text>
-      </View>
-    </Page>
-  </Document>
-);
+export const PDFDocument: React.FC<PDFDocumentProps> = ({ brief }) => {
+  const formatBrief = (text: string) => {
+    const lines = text.split('\n');
+    return lines.map((line, index) => {
+      if (line.match(/^[A-Z][a-z]+:$/)) {
+        return <Text key={index} style={styles.heading}>{line}</Text>;
+      } else {
+        return <Text key={index} style={styles.paragraph}>{line}</Text>;
+      }
+    });
+  };
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={styles.section}>
+          {formatBrief(brief)}
+        </View>
+      </Page>
+    </Document>
+  );
+};
