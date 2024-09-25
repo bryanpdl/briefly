@@ -19,7 +19,7 @@ export async function generateBrief(formData: ProjectFormData) {
     .map(item => `${item.item}: $${item.amount}`)
     .join('\n');
 
-  const prompt = `Generate a professional project brief from the perspective of the client based on the following information:
+  const prompt = `Generate a professional but personable project brief from the perspective of the client based on the following information:
     Project Type: ${formData.projectType}
     Project Name: ${formData.projectName}
     Goals: ${formData.goals}
@@ -39,7 +39,7 @@ export async function generateBrief(formData: ProjectFormData) {
     8. Discuss the budget and its breakdown in a way that feels natural to the narrative.
     9. Conclude with a closing statement that summarizes the project's importance and the client's expectations for success.
     
-    The tone should be professional yet comfortable andconversational.`;
+    The tone should be professional yet comfortable and conversational.`;
 
   const response = await openai.chat.completions.create({
     model: "gpt-4", // This might be a typo

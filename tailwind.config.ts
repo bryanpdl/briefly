@@ -5,7 +5,6 @@ const config: Config = {
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/globals.css", // Add this line
   ],
   theme: {
     extend: {
@@ -22,6 +21,9 @@ const config: Config = {
         'success-hover': "var(--success-hover)",
         danger: "var(--danger)",
         'danger-hover': "var(--danger-hover)",
+      },
+      zIndex: {
+        '9999': '9999',
       },
     },
   },

@@ -17,10 +17,25 @@
   --danger-hover: #c82333;
 }
 
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  min-height: 100vh;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: 'Inter', sans-serif;
+  position: relative;
+  overflow-x: hidden;
+}
+
+#__next {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 @layer base {
@@ -37,22 +52,28 @@ body {
     @apply w-full px-4 py-3 text-base border rounded-lg bg-input-bg border-input-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
   }
   .btn-primary {
-    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-gray-700 hover:text-white transition duration-300 ease-in-out;
+    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-gray-700 hover:text-white transition duration-200 ease-in-out;
+    transition: transform 0.2s ease-in-out;
   }
   .btn-icon {
-    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-gray-700 hover:text-white transition duration-300 ease-in-out;
+    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-gray-700 hover:text-white transition duration-200 ease-in-out;
+    transition: transform 0.2s ease-in-out;
   }
   .btn-secondary {
-    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-gray-700 hover:text-white transition duration-300 ease-in-out;
+    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-gray-700 hover:text-white transition duration-200 ease-in-out;
+    transition: transform 0.2s ease-in-out;
   }
   .btn-success {
-    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-gray-700 hover:text-white transition duration-300 ease-in-out;
+    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-gray-700 hover:text-white transition duration-200 ease-in-out;
+    transition: transform 0.2s ease-in-out;
   }
   .btn-danger {
-    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-gray-700 hover:text-white transition duration-300 ease-in-out;
+    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-gray-700 hover:text-white transition duration-200 ease-in-out;
+    transition: transform 0.2s ease-in-out;
   }
   .btn-inverted {
-    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-white bg-gray-700 border border-gray-700 rounded-md hover:bg-white hover:text-gray-700 hover:border-gray-300 transition duration-300 ease-in-out;
+    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-white bg-gray-700 border border-gray-700 rounded-md hover:bg-white hover:text-gray-700 hover:border-gray-300 transition duration-200 ease-in-out;
+    transition: transform 0.2s ease-in-out;
   }
   .btn-primary:hover .icon, .btn-icon:hover .icon, .btn-secondary:hover .icon, .btn-success:hover .icon, .btn-danger:hover .icon {
     color: white;
@@ -60,7 +81,10 @@ body {
   .btn-inverted:hover .icon {
     color: gray;
   }
-  .btn-primary:hover, .btn-icon:hover, .btn-secondary:hover, .btn-success:hover, .btn-danger:hover {
+  .btn-primary:hover,
+  .btn-secondary:hover,
+  .btn-inverted:hover {
+    transform: translateY(-2px);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   }
 
@@ -101,4 +125,61 @@ body {
   .btn-regenerate {
     @apply flex items-center justify-center px-2 py-1 text-sm font-medium text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-gray-100 transition duration-300 ease-in-out;
   }
+}
+
+.project-name {
+  @apply text-3xl font-bold leading-none m-0 p-0;
+}
+
+.break-all {
+  word-break: break-all;
+}
+
+/* Ensure the main content doesn't create unwanted scrollbars */
+.container {
+  width: 100%;
+  max-width: 64rem; /* Adjust this value as needed */
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Add this if you're using a custom App component */
+#__next > div {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Add these styles at the end of the file */
+.modal-open {
+  overflow: hidden;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 28rem;
+  width: 100%;
+  margin: 1rem;
+  overflow: hidden;
+}
+
+.modal-body {
+  padding: 1.5rem;
 }
