@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BlobProvider } from '@react-pdf/renderer';
 import { PDFDocument } from './PDFDocument';
 import { Edit, FilePlus, Mail, Save, ArrowLeft, RefreshCw, Link } from 'lucide-react';
 import { regenerateSection } from '@/utils/gptApi';
 import { saveBriefData } from '@/utils/dataStore';
-import LinkModal from './LinkModal';
+import dynamic from 'next/dynamic';
+
+const LinkModal = dynamic(() => import('./LinkModal'), { ssr: false });
 
 interface ProjectBriefProps {
   brief: string;
@@ -36,18 +37,25 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, projectName, onEdit,
     let currentSection = { title: '', content: '' };
 
     lines.forEach((line) => {
-      if (line.match(/^[A-Z][a-z]+:$/)) {
+      const trimmedLine = line.trim();
+      if (trimmedLine.match(/^[A-Z][a-z]+:$/)) {
         if (currentSection.title) {
-          parsedSections.push({ ...currentSection });
+          parsedSections.push({
+            title: currentSection.title,
+            content: currentSection.content.trim()
+          });
         }
-        currentSection = { title: line.trim(), content: '' };
-      } else {
-        currentSection.content += line + '\n';
+        currentSection = { title: trimmedLine, content: '' };
+      } else if (trimmedLine) {
+        currentSection.content += (currentSection.content ? '\n' : '') + trimmedLine;
       }
     });
 
     if (currentSection.title) {
-      parsedSections.push(currentSection);
+      parsedSections.push({
+        title: currentSection.title,
+        content: currentSection.content.trim()
+      });
     }
 
     return parsedSections;
@@ -65,16 +73,18 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, projectName, onEdit,
   };
 
   const handleSaveClick = () => {
-    onSave(editedBrief);
+    const updatedBrief = sections.map(section => `${section.title}\n${section.content}`).join('\n\n');
+    onSave(updatedBrief);
+    setEditedBrief(updatedBrief);
     setIsEditing(false);
   };
 
   const handleRegenerateSection = async (sectionTitle: string) => {
     setRegeneratingSection(sectionTitle);
     try {
-      const regeneratedContent = await regenerateSection(brief, sectionTitle);
+      const regeneratedContent = await regenerateSection(editedBrief, sectionTitle);
       const updatedSections = sections.map(section =>
-        section.title === sectionTitle ? { ...section, content: regeneratedContent } : section
+        section.title === sectionTitle ? { ...section, content: regeneratedContent.trim() } : section
       );
       setSections(updatedSections);
       const updatedBrief = updatedSections.map(section => `${section.title}\n${section.content}`).join('\n\n');
@@ -91,7 +101,7 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, projectName, onEdit,
     const slug = Math.random().toString(36).substring(2, 15);
     const uniqueLink = `${window.location.origin}/brief/${slug}`;
     try {
-      await saveBriefData(slug, projectName, editedBrief);
+      await saveBriefData(slug, projectName, editedBrief, isPaidUser);
       setGeneratedLink(uniqueLink);
       onCreateLink(uniqueLink);
       setShowLinkModal(true);
@@ -101,13 +111,20 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, projectName, onEdit,
     }
   };
 
+  const handleEditForm = () => {
+    localStorage.removeItem('persistedBrief');
+    localStorage.removeItem('persistedFormData');
+    localStorage.setItem('persistedShowForm', 'true');
+    onEdit();
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold mb-4">{projectName}</h1>
-      <button onClick={onEdit} className="btn-inverted">
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          Edit Form
-        </button>
+      <button onClick={handleEditForm} className="btn-inverted">
+        <ArrowLeft className="w-5 h-5 mr-2" />
+        Edit Form
+      </button>
       <div className="brief-container">
         {sections.map((section, index) => (
           <div key={index} className="mb-6">
@@ -130,9 +147,8 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, projectName, onEdit,
                   value={section.content}
                   onChange={(e) => {
                     const updatedSections = [...sections];
-                    updatedSections[index].content = e.target.value;
+                    updatedSections[index].content = e.target.value.trim();
                     setSections(updatedSections);
-                    setEditedBrief(updatedSections.map(s => `${s.title}\n${s.content}`).join('\n\n'));
                   }}
                   className="w-full h-40 p-2 border rounded"
                 />
@@ -152,38 +168,40 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, projectName, onEdit,
               Save Changes
             </button>
           ) : (
-            <button onClick={handleEditClick} className="btn-primary">
-              <Edit className="w-5 h-5 mr-2" />
-              Edit
-            </button>
-          )}
-          
-          <button onClick={handleCreateLink} className="btn-primary">
-            <Link className="w-5 h-5 mr-2" />
-            Create Link
-          </button>
-          {isPaidUser && (
             <>
-              <BlobProvider document={<PDFDocument brief={editedBrief} />}>
-                {({ url, loading }) => (
-                  <a
-                    href={url || '#'}
-                    download="project_brief.pdf"
-                    className="btn-primary disabled:opacity-50"
-                    style={{ pointerEvents: loading ? 'none' : 'auto' }}
-                  >
-                    {loading ? 'Loading document...' : 'Download PDF'}
-                  </a>
-                )}
-              </BlobProvider>
-              <button onClick={handleShare} className="btn-primary">
-                <Mail className="w-5 h-5 mr-2" />
-                Share
+              <button onClick={handleEditClick} className="btn-primary">
+                <Edit className="w-5 h-5 mr-2" />
+                Edit
               </button>
+              
+              <button onClick={handleCreateLink} className="btn-primary">
+                <Link className="w-5 h-5 mr-2" />
+                Create Link
+              </button>
+              {isPaidUser && (
+                <>
+                  <BlobProvider document={<PDFDocument brief={editedBrief} />}>
+                    {({ url, loading }) => (
+                      <a
+                        href={url || '#'}
+                        download="project_brief.pdf"
+                        className="btn-primary disabled:opacity-50"
+                        style={{ pointerEvents: loading ? 'none' : 'auto' }}
+                      >
+                        {loading ? 'Loading document...' : 'Download PDF'}
+                      </a>
+                    )}
+                  </BlobProvider>
+                  <button onClick={handleShare} className="btn-primary">
+                    <Mail className="w-5 h-5 mr-2" />
+                    Share
+                  </button>
+                </>
+              )}
             </>
           )}
         </div>
-        {!isPaidUser && (
+        {!isPaidUser && !isEditing && (
           <div className="text-right text-sm text-gray-600">
             Upgrade to access premium features
           </div>

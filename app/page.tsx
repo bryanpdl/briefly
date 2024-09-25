@@ -40,6 +40,16 @@ export default function Home() {
         setIsPaidUser(false);
       }
     });
+
+    // Load persisted state from localStorage
+    const persistedBrief = localStorage.getItem('persistedBrief');
+    const persistedFormData = localStorage.getItem('persistedFormData');
+    const persistedShowForm = localStorage.getItem('persistedShowForm');
+
+    if (persistedBrief) setBrief(persistedBrief);
+    if (persistedFormData) setFormData(JSON.parse(persistedFormData));
+    if (persistedShowForm) setShowForm(persistedShowForm === 'true');
+
     return () => unsubscribe();
   }, []);
 
@@ -59,6 +69,11 @@ export default function Home() {
       setBrief(generatedBrief);
       setFormData(data);
       setShowForm(false);
+
+      // Persist state to localStorage
+      localStorage.setItem('persistedBrief', generatedBrief);
+      localStorage.setItem('persistedFormData', JSON.stringify(data));
+      localStorage.setItem('persistedShowForm', 'false');
     } catch (error) {
       console.error('Error generating brief:', error);
     }
@@ -66,15 +81,23 @@ export default function Home() {
 
   const handleEditBrief = () => {
     setShowForm(true);
+    // Update localStorage
+    localStorage.setItem('persistedShowForm', 'true');
   };
 
   const handleCreateNewBrief = () => {
     setFormData(null);
     setShowForm(true);
+    // Clear localStorage
+    localStorage.removeItem('persistedBrief');
+    localStorage.removeItem('persistedFormData');
+    localStorage.setItem('persistedShowForm', 'true');
   };
 
   const handleSaveBrief = (updatedBrief: string) => {
     setBrief(updatedBrief);
+    // Update localStorage
+    localStorage.setItem('persistedBrief', updatedBrief);
     console.log('Brief updated successfully');
   };
 
