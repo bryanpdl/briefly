@@ -92,7 +92,9 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, projectName, onEdit,
     const uniqueLink = `${window.location.origin}/brief/${slug}`;
     try {
       await saveBriefData(slug, projectName, editedBrief);
+      setGeneratedLink(uniqueLink);
       onCreateLink(uniqueLink);
+      setShowLinkModal(true);
     } catch (error) {
       console.error('Error saving brief data:', error);
       alert('Failed to create link. Please try again.');
@@ -142,42 +144,49 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, projectName, onEdit,
         ))}
       </div>
       
-      <div className="flex flex-wrap items-center gap-4">
-        {isEditing ? (
-          <button onClick={handleSaveClick} className="btn-primary">
-            <Save className="w-5 h-5 mr-2" />
-            Save Changes
-          </button>
-        ) : (
-          <button onClick={handleEditClick} className="btn-primary">
-            <Edit className="w-5 h-5 mr-2" />
-            Edit
-          </button>
-        )}
-        
-        <button onClick={handleCreateLink} className="btn-primary">
-          <Link className="w-5 h-5 mr-2" />
-          Create Link
-        </button>
-        {isPaidUser && (
-          <>
-            <BlobProvider document={<PDFDocument brief={editedBrief} />}>
-              {({ url, loading }) => (
-                <a
-                  href={url || '#'}
-                  download="project_brief.pdf"
-                  className="btn-primary disabled:opacity-50"
-                  style={{ pointerEvents: loading ? 'none' : 'auto' }}
-                >
-                  {loading ? 'Loading document...' : 'Download PDF'}
-                </a>
-              )}
-            </BlobProvider>
-            <button onClick={handleShare} className="btn-primary">
-              <Mail className="w-5 h-5 mr-2" />
-              Share
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-4">
+          {isEditing ? (
+            <button onClick={handleSaveClick} className="btn-primary">
+              <Save className="w-5 h-5 mr-2" />
+              Save Changes
             </button>
-          </>
+          ) : (
+            <button onClick={handleEditClick} className="btn-primary">
+              <Edit className="w-5 h-5 mr-2" />
+              Edit
+            </button>
+          )}
+          
+          <button onClick={handleCreateLink} className="btn-primary">
+            <Link className="w-5 h-5 mr-2" />
+            Create Link
+          </button>
+          {isPaidUser && (
+            <>
+              <BlobProvider document={<PDFDocument brief={editedBrief} />}>
+                {({ url, loading }) => (
+                  <a
+                    href={url || '#'}
+                    download="project_brief.pdf"
+                    className="btn-primary disabled:opacity-50"
+                    style={{ pointerEvents: loading ? 'none' : 'auto' }}
+                  >
+                    {loading ? 'Loading document...' : 'Download PDF'}
+                  </a>
+                )}
+              </BlobProvider>
+              <button onClick={handleShare} className="btn-primary">
+                <Mail className="w-5 h-5 mr-2" />
+                Share
+              </button>
+            </>
+          )}
+        </div>
+        {!isPaidUser && (
+          <div className="text-right text-sm text-gray-600">
+            Upgrade to access premium features
+          </div>
         )}
       </div>
       
