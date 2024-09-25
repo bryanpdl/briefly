@@ -8,6 +8,7 @@ import { signInWithGoogle, signOut, checkUserSubscription } from '../utils/auth'
 import { User } from 'firebase/auth';
 import { auth } from '../utils/firebaseConfig';
 import LinkModal from './components/LinkModal';
+import Image from 'next/image'; // Import Image from next/image
 
 interface ProjectFormData {
   projectType: string;
@@ -91,6 +92,11 @@ export default function Home() {
     setIsPaidUser(false);
   };
 
+  const handleCreateLink = (link: string) => {
+    setGeneratedLink(link);
+    setShowLinkModal(true);
+  };
+
   if (!isClient) {
     return null;
   }
@@ -103,7 +109,15 @@ export default function Home() {
             <h1 className="text-6xl font-bold">briefly.</h1>
             {user ? (
               <div className="flex items-center">
-                <img src={user.photoURL || undefined} alt={user.displayName || 'User'} className="w-8 h-8 rounded-full mr-2" />
+                {user.photoURL && (
+                  <Image
+                    src={user.photoURL}
+                    alt={user.displayName || 'User'}
+                    width={32}
+                    height={32}
+                    className="rounded-full mr-2"
+                  />
+                )}
                 <button onClick={handleSignOut} className="btn-secondary">Sign Out</button>
               </div>
             ) : (
@@ -120,6 +134,7 @@ export default function Home() {
               onCreateNew={handleCreateNewBrief}
               onSave={handleSaveBrief}
               isPaidUser={isPaidUser}
+              onCreateLink={handleCreateLink}
             />
           )}
         </div>

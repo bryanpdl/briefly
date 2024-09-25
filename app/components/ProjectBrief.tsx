@@ -14,9 +14,10 @@ interface ProjectBriefProps {
   onCreateNew: () => void;
   onSave: (updatedBrief: string) => void;
   isPaidUser: boolean;
+  onCreateLink: (link: string) => void;
 }
 
-const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, projectName, onEdit, onCreateNew, onSave, isPaidUser }) => {
+const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, projectName, onEdit, onCreateNew, onSave, isPaidUser, onCreateLink }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedBrief, setEditedBrief] = useState(brief);
   const [regeneratingSection, setRegeneratingSection] = useState<string | null>(null);
@@ -68,10 +69,6 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, projectName, onEdit,
     setIsEditing(false);
   };
 
-  const handleBriefChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setEditedBrief(e.target.value);
-  };
-
   const handleRegenerateSection = async (sectionTitle: string) => {
     setRegeneratingSection(sectionTitle);
     try {
@@ -95,8 +92,7 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, projectName, onEdit,
     const uniqueLink = `${window.location.origin}/brief/${slug}`;
     try {
       await saveBriefData(slug, projectName, editedBrief);
-      setGeneratedLink(uniqueLink);
-      setShowLinkModal(true);
+      onCreateLink(uniqueLink);
     } catch (error) {
       console.error('Error saving brief data:', error);
       alert('Failed to create link. Please try again.');
