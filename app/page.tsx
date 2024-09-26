@@ -121,6 +121,12 @@ export default function Home() {
     setShowLinkModal(true);
   };
 
+  const handleCancelEdit = () => {
+    setShowForm(false);
+    // Update localStorage
+    localStorage.setItem('persistedShowForm', 'false');
+  };
+
   if (!isClient) {
     return null;
   }
@@ -149,7 +155,11 @@ export default function Home() {
             )}
           </div>
           {showForm ? (
-            <ProjectForm onSubmit={handleFormSubmit} initialData={formData} />
+            <ProjectForm 
+              onSubmit={handleFormSubmit} 
+              initialData={formData} 
+              onCancelEdit={formData ? handleCancelEdit : undefined} // Pass the cancel edit handler
+            />
           ) : (
             <ProjectBrief 
               brief={brief} 

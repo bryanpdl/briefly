@@ -118,6 +118,48 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, projectName, onEdit,
     onEdit();
   };
 
+  const renderContent = (content: string) => {
+    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    const imageRegex = /(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|bmp))/gi;
+    
+    const parts = content.split(linkRegex);
+    
+    return parts.map((part, index) => {
+      if (index % 3 === 1) {
+        // This is the link text
+        return (
+          <a
+            key={`link-${index}`}
+            href={parts[index + 1]}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            {part}
+          </a>
+        );
+      } else if (index % 3 === 0) {
+        // This is regular text, but may contain image URLs
+        return part.split(imageRegex).map((text, i) => {
+          if (i % 2 === 1) {
+            // This is an image URL
+            return (
+              <img
+                key={`img-${index}-${i}`}
+                src={text}
+                alt="Reference"
+                className="max-w-full h-auto my-2 rounded"
+              />
+            );
+          }
+          // This is regular text
+          return <React.Fragment key={`text-${index}-${i}`}>{text}</React.Fragment>;
+        });
+      }
+      return null;
+    });
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold mb-4">{projectName}</h1>
@@ -147,13 +189,13 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, projectName, onEdit,
                   value={section.content}
                   onChange={(e) => {
                     const updatedSections = [...sections];
-                    updatedSections[index].content = e.target.value.trim();
+                    updatedSections[index].content = e.target.value;
                     setSections(updatedSections);
                   }}
                   className="w-full h-40 p-2 border rounded"
                 />
               ) : (
-                <p>{section.content}</p>
+                renderContent(section.content)
               )}
             </div>
           </div>

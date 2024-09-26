@@ -16,9 +16,10 @@ interface FormData {
 interface ProjectFormProps {
   onSubmit: (data: FormData & { projectType: string }) => void;
   initialData?: FormData | null;
+  onCancelEdit?: () => void; // Add this prop
 }
 
-const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, initialData }) => {
+const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, initialData, onCancelEdit }) => {
   const [formData, setFormData] = useState<FormData>({
     projectName: initialData?.projectName || '',
     goals: initialData?.goals || '',
@@ -69,8 +70,15 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, initialData }) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+
+    // Format reference values
+    const formattedReferences = formData.references.map(ref => ({
+      ...ref,
+      value: formatReferenceValue(ref.value),
+    }));
+
     try {
-      await onSubmit({ ...formData, projectType: projectType.value });
+      await onSubmit({ ...formData, references: formattedReferences, projectType: projectType.value });
     } catch {
       setError('Failed to generate brief. Please try again.');
     } finally {
@@ -92,6 +100,10 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, initialData }) => {
       ...prevData,
       references: newReferences,
     }));
+  };
+
+  const formatReferenceValue = (value: string) => {
+    return value.match(/^https?:\/\//) ? value : `https://${value}`;
   };
 
   const handleRemoveReference = (index: number) => {
@@ -315,6 +327,16 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, initialData }) => {
       >
         {isLoading ? 'Generating Brief...' : 'Generate Brief'}
       </button>
+
+      {onCancelEdit && (
+        <button
+          type="button"
+          onClick={onCancelEdit}
+          className="btn-inverted w-full mt-2"
+        >
+          Cancel Edit
+        </button>
+      )}
     </form>
   );
 };
