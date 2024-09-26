@@ -23,16 +23,12 @@ const BriefPage = () => {
   const [sections, setSections] = useState<Section[]>([]);
 
   useEffect(() => {
-    console.log('Slug:', slug);
     const fetchBriefData = async () => {
       if (slug) {
         const data = await getBriefData(slug);
-        console.log('Fetched brief data:', data);
-        if (data && data.content) {
+        if (data) {
           setBriefData(data);
           setSections(parseBriefIntoSections(data.content));
-        } else {
-          console.error('Invalid brief data received:', data);
         }
       }
     };
@@ -40,10 +36,6 @@ const BriefPage = () => {
   }, [slug]);
 
   const parseBriefIntoSections = (text: string): Section[] => {
-    if (!text) {
-      console.error('Invalid text received for parsing');
-      return [];
-    }
     const lines = text.split('\n');
     const parsedSections: Section[] = [];
     let currentSection: Section = { title: '', content: '' };
@@ -63,8 +55,50 @@ const BriefPage = () => {
       parsedSections.push(currentSection);
     }
 
-    console.log('Parsed sections:', parsedSections); // Add this line for debugging
     return parsedSections;
+  };
+
+  const renderContent = (content: string) => {
+    console.log('Content to render:', content);
+    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    const imageRegex = /(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|bmp))/gi;
+    
+    const parts = content.split(linkRegex);
+    
+    return parts.map((part, index) => {
+      if (index % 3 === 1) {
+        // This is the link text
+        return (
+          <a
+            key={`link-${index}`}
+            href={parts[index + 1]}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            {part}
+          </a>
+        );
+      } else if (index % 3 === 0) {
+        // This is regular text, but may contain image URLs
+        return part.split(imageRegex).map((text, i) => {
+          if (i % 2 === 1) {
+            // This is an image URL
+            return (
+              <img
+                key={`img-${index}-${i}`}
+                src={text}
+                alt="Reference"
+                className="max-w-full h-auto my-2 rounded"
+              />
+            );
+          }
+          // This is regular text
+          return <React.Fragment key={`text-${index}-${i}`}>{text}</React.Fragment>;
+        });
+      }
+      return null;
+    });
   };
 
   if (!briefData) {
@@ -85,7 +119,9 @@ const BriefPage = () => {
             sections.map((section, index) => (
               <div key={index} className="mb-6">
                 <h2 className="brief-subheading">{section.title}</h2>
-                <div className="brief-paragraph whitespace-pre-wrap">{section.content}</div>
+                <div className="brief-paragraph whitespace-pre-wrap">
+                  {renderContent(section.content)}
+                </div>
               </div>
             ))
           ) : (

@@ -17,6 +17,7 @@ interface ProjectFormData {
   deadline: string;
   budget: string;
   budgetBreakdown: { item: string; amount: string }[];
+  references: { type: 'link' | 'image'; value: string }[];
 }
 
 export default function Home() {

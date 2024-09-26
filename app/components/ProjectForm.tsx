@@ -1,5 +1,6 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
-import { Root, Field, Label, Control, Submit } from '@radix-ui/react-form';
+import { Link, Image as ImageIcon, X } from 'lucide-react';
+import { uploadImage } from '@/utils/imageUpload';
 
 const projectType = { value: 'design', label: 'Design' };
 
@@ -9,6 +10,7 @@ interface FormData {
   deadline: string;
   budget: string;
   budgetBreakdown: { item: string; amount: string }[];
+  references: { type: 'link' | 'image'; value: string }[];
 }
 
 interface ProjectFormProps {
@@ -23,6 +25,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, initialData }) => {
     deadline: initialData?.deadline || '',
     budget: initialData?.budget || '',
     budgetBreakdown: initialData?.budgetBreakdown || [{ item: '', amount: '' }],
+    references: initialData?.references || [],
   });
 
   const [showBudgetBreakdown, setShowBudgetBreakdown] = useState<boolean>(false);
@@ -75,77 +78,111 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, initialData }) => {
     }
   };
 
+  const handleAddReference = (type: 'link' | 'image') => {
+    setFormData(prevData => ({
+      ...prevData,
+      references: [...prevData.references, { type, value: '' }],
+    }));
+  };
+
+  const handleReferenceChange = (index: number, value: string) => {
+    const newReferences = [...formData.references];
+    newReferences[index].value = value;
+    setFormData(prevData => ({
+      ...prevData,
+      references: newReferences,
+    }));
+  };
+
+  const handleRemoveReference = (index: number) => {
+    setFormData(prevData => ({
+      ...prevData,
+      references: prevData.references.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleImageUpload = async (index: number, file: File) => {
+    try {
+      console.log('Uploading image:', file.name);
+      const imageUrl = await uploadImage(file);
+      console.log('Image uploaded successfully:', imageUrl);
+      handleReferenceChange(index, imageUrl);
+      
+      // Update the UI to show the uploaded image
+      const updatedReferences = [...formData.references];
+      updatedReferences[index] = { type: 'image', value: imageUrl };
+      setFormData(prevData => ({
+        ...prevData,
+        references: updatedReferences,
+      }));
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Failed to upload image. Please try again.');
+    }
+  };
+
   return (
-    <Root onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
-      <Field name="projectType" className="mb-4">
-        <Label className="block text-sm font-medium mb-2">Project Type</Label>
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-2">Project Type</label>
         <div className="input-field flex items-center">
           <span>{projectType.label}</span>
         </div>
-      </Field>
+      </div>
 
-      <Field name="projectName" className="mb-4">
-        <Label className="block text-sm font-medium mb-2">Project Name</Label>
-        <Control asChild>
-          <input
-            type="text"
-            name="projectName"
-            value={formData.projectName}
-            onChange={handleInputChange}
-            className="input-field"
-            placeholder="Enter project name"
-            required
-          />
-        </Control>
-      </Field>
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-2">Project Name</label>
+        <input
+          type="text"
+          name="projectName"
+          value={formData.projectName}
+          onChange={handleInputChange}
+          className="input-field"
+          placeholder="Enter project name"
+          required
+        />
+      </div>
 
-      <Field name="goals" className="mb-4">
-        <Label className="block text-sm font-medium mb-2">Project Goals</Label>
-        <Control asChild>
-          <textarea
-            name="goals"
-            value={formData.goals}
-            onChange={handleInputChange}
-            className="input-field"
-            placeholder="Describe your project goals"
-            rows={4}
-            required
-          />
-        </Control>
-      </Field>
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-2">Project Goals</label>
+        <textarea
+          name="goals"
+          value={formData.goals}
+          onChange={handleInputChange}
+          className="input-field"
+          placeholder="Describe your project goals"
+          rows={4}
+          required
+        />
+      </div>
 
-      <Field name="deadline" className="mb-4">
-        <Label className="block text-sm font-medium mb-2">Deadline</Label>
-        <Control asChild>
-          <input
-            type="date"
-            name="deadline"
-            value={formData.deadline}
-            onChange={handleInputChange}
-            className="input-field"
-            required
-          />
-        </Control>
-      </Field>
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-2">Deadline</label>
+        <input
+          type="date"
+          name="deadline"
+          value={formData.deadline}
+          onChange={handleInputChange}
+          className="input-field"
+          required
+        />
+      </div>
 
-      <Field name="budget" className="mb-4">
-        <Label className="block text-sm font-medium mb-2">Budget</Label>
-        <Control asChild>
-          <input
-            type="number"
-            name="budget"
-            value={formData.budget}
-            onChange={handleInputChange}
-            className="input-field"
-            placeholder="Enter total budget amount"
-            required
-          />
-        </Control>
-      </Field>
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-2">Budget</label>
+        <input
+          type="number"
+          name="budget"
+          value={formData.budget}
+          onChange={handleInputChange}
+          className="input-field"
+          placeholder="Enter total budget amount"
+          required
+        />
+      </div>
 
-      <Field name="showBudgetBreakdown" className="mb-4">
-        <Label className="block text-sm font-medium mb-2">Show Budget Breakdown</Label>
-        <Control asChild>
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-2">
           <input
             type="checkbox"
             name="showBudgetBreakdown"
@@ -153,36 +190,33 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, initialData }) => {
             onChange={() => setShowBudgetBreakdown(!showBudgetBreakdown)}
             className="mr-2"
           />
-        </Control>
-      </Field>
+          Show Budget Breakdown
+        </label>
+      </div>
 
       {showBudgetBreakdown && (
-        <Field name="budgetBreakdown" className="mb-4">
-          <Label className="block text-sm font-medium mb-2">Budget Breakdown</Label>
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-2">Budget Breakdown</label>
           {formData.budgetBreakdown.map((item, index) => (
             <div key={index} className="flex items-center mb-2">
-              <Control asChild>
-                <input
-                  type="text"
-                  name="item"
-                  value={item.item}
-                  onChange={(e) => handleBudgetBreakdownChange(index, e)}
-                  className="input-field mr-2"
-                  placeholder="Item"
-                  required
-                />
-              </Control>
-              <Control asChild>
-                <input
-                  type="number"
-                  name="amount"
-                  value={item.amount}
-                  onChange={(e) => handleBudgetBreakdownChange(index, e)}
-                  className="input-field mr-2"
-                  placeholder="Amount"
-                  required
-                />
-              </Control>
+              <input
+                type="text"
+                name="item"
+                value={item.item}
+                onChange={(e) => handleBudgetBreakdownChange(index, e)}
+                className="input-field mr-2"
+                placeholder="Item"
+                required
+              />
+              <input
+                type="number"
+                name="amount"
+                value={item.amount}
+                onChange={(e) => handleBudgetBreakdownChange(index, e)}
+                className="input-field mr-2"
+                placeholder="Amount"
+                required
+              />
               <button
                 type="button"
                 onClick={() => removeBudgetBreakdownItem(index)}
@@ -199,20 +233,89 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, initialData }) => {
           >
             Add Item
           </button>
-        </Field>
+        </div>
       )}
+
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-2">References</label>
+        {formData.references.map((ref, index) => (
+          <div key={index} className="flex items-center mb-2">
+            {ref.type === 'link' ? (
+              <input
+                type="text"
+                value={ref.value}
+                onChange={(e) => handleReferenceChange(index, e.target.value)}
+                className="input-field flex-grow"
+                placeholder="Enter link URL"
+              />
+            ) : (
+              <div className="flex items-center">
+                {ref.value ? (
+                  <>
+                    <span className="mr-2">Image uploaded</span>
+                    <a
+                      href={ref.value}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      View
+                    </a>
+                  </>
+                ) : (
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleImageUpload(index, file);
+                      }
+                    }}
+                    className="input-field flex-grow"
+                  />
+                )}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => handleRemoveReference(index)}
+              className="btn-danger ml-2"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        ))}
+        <div className="flex space-x-2">
+          <button
+            type="button"
+            onClick={() => handleAddReference('link')}
+            className="btn-secondary flex items-center"
+          >
+            <Link className="w-4 h-4 mr-2" />
+            Add Link
+          </button>
+          <button
+            type="button"
+            onClick={() => handleAddReference('image')}
+            className="btn-secondary flex items-center"
+          >
+            <ImageIcon className="w-4 h-4 mr-2" />
+            Add Image
+          </button>
+        </div>
+      </div>
 
       {error && <p className="text-red-600">{error}</p>}
 
-      <Submit asChild>
-        <button
-          className={`btn-primary w-full ${isLoading ? 'bg-secondary text-white hover:bg-secondary cursor-not-allowed' : ''}`}
-          disabled={isLoading}
-        >
-          {isLoading ? 'Generating Brief...' : 'Generate Brief'}
-        </button>
-      </Submit>
-    </Root>
+      <button
+        type="submit"
+        className={`btn-primary w-full ${isLoading ? 'bg-secondary text-white hover:bg-secondary cursor-not-allowed' : ''}`}
+        disabled={isLoading}
+      >
+        {isLoading ? 'Generating Brief...' : 'Generate Brief'}
+      </button>
+    </form>
   );
 };
 

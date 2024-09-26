@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true // This allows the OpenAI client to be used in the browser
+  dangerouslyAllowBrowser: true
 });
 
 interface ProjectFormData {
@@ -12,6 +12,7 @@ interface ProjectFormData {
   deadline: string;
   budget: string;
   budgetBreakdown: { item: string; amount: string }[];
+  references: { type: 'link' | 'image'; value: string }[];
 }
 
 export async function generateBrief(formData: ProjectFormData) {
@@ -19,7 +20,13 @@ export async function generateBrief(formData: ProjectFormData) {
     .map(item => `${item.item}: $${item.amount}`)
     .join('\n');
 
-  const prompt = `Generate a professional but personable project brief from the perspective of the client based on the following information:
+  const references = formData.references
+    .map(ref => ref.type === 'link' ? `Link: ${ref.value}` : `Image: ${ref.value}`)
+    .join('\n');
+
+  console.log('References being sent to GPT:', references);
+
+  const prompt = `Generate a professional but personable project brief from the perspective of the client, also incorporating information from the web if needed, based on the following information:
     Project Type: ${formData.projectType}
     Project Name: ${formData.projectName}
     Goals: ${formData.goals}
@@ -27,29 +34,38 @@ export async function generateBrief(formData: ProjectFormData) {
     Budget: $${formData.budget}
     Budget Breakdown:
     ${budgetBreakdown}
+    References:
+    ${references}
     
     Please follow these guidelines:
     1. Write the brief as if the client is describing their project requirements and expectations.
     2. Start with an "Introduction:" section that outlines the project's purpose and main goals.
-    3. Include separate sections for "Goals:", "Timeline:", "Budget:", and "Conclusion:".
+    3. Include separate sections for "Goals:", "Timeline:", "Budget:", "References:", and "Conclusion:".
     4. Format each main section with a capitalized title followed by a colon, on its own line (e.g., "Introduction:", "Goals:", etc.).
     5. Make sure to exclude 'Project Type:' from the project overview, it's a bit redundant.
-    6. Format the brief with proper organization, especially when listing specific goals, budget breakdowns, or requirements. 
-    7. Discuss the project details, including type, name, and specific goals.
-    8. Discuss the budget and its breakdown in a way that feels natural to the narrative.
-    9. Conclude with a closing statement that summarizes the project's importance and the client's expectations for success.
+    6. Format the brief with proper organization, especially when listing specific goals, budget breakdowns, or requirements.
+    7. For image references, explicitly mention each image URL and accurately describe what it shows and how it relates to the project.
+    8. Discuss the project details, including type, name, and specific goals.
+    9. Discuss the budget and its breakdown in a way that feels natural to the narrative.
+    10. Incorporate the provided references into the brief, mentioning how they relate to the project or inspire certain aspects.
+    11. Conclude with a closing statement that summarizes the project's importance and the client's expectations for success.
     
     The tone should be professional yet comfortable and conversational.`;
 
+  console.log('Prompt being sent to GPT:', prompt);
+
   const response = await openai.chat.completions.create({
-    model: "gpt-4", // This might be a typo
+    model: "gpt-4",
     messages: [{ role: "user", content: prompt }],
-    max_tokens: 700,
+    max_tokens: 1000,
   });
 
-  console.log("API Response:", response); // Add this line for debugging
+  console.log("API Response:", response);
 
-  return response.choices[0].message.content?.trim() || '';
+  const generatedBrief = response.choices[0].message.content?.trim() || '';
+  console.log("Generated Brief:", generatedBrief);
+
+  return generatedBrief;
 }
 
 export async function regenerateSection(brief: string, sectionName: string) {
