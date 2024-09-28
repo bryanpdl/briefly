@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { getBriefData } from '@/utils/dataStore';
+import Image from 'next/image';
 
 interface Section {
   title: string;
@@ -85,10 +86,12 @@ const BriefPage = () => {
           if (i % 2 === 1) {
             // This is an image URL
             return (
-              <img
+              <Image
                 key={`img-${index}-${i}`}
                 src={text}
                 alt="Reference"
+                width={500}
+                height={300}
                 className="max-w-full h-auto my-2 rounded"
               />
             );

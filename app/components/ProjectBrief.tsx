@@ -5,6 +5,7 @@ import { Edit, FilePlus, Mail, Save, ArrowLeft, RefreshCw, Link } from 'lucide-r
 import { regenerateSection } from '@/utils/gptApi';
 import { saveBriefData } from '@/utils/dataStore';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 
 const LinkModal = dynamic(() => import('./LinkModal'), { ssr: false });
 
@@ -144,10 +145,12 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, projectName, onEdit,
           if (i % 2 === 1) {
             // This is an image URL
             return (
-              <img
+              <Image
                 key={`img-${index}-${i}`}
                 src={text}
                 alt="Reference"
+                width={500}
+                height={300}
                 className="max-w-full h-auto my-2 rounded"
               />
             );

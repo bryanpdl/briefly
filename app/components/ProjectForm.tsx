@@ -52,7 +52,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, initialData, onCanc
 
     // Save form progress to localStorage
     localStorage.setItem('formProgress', JSON.stringify({ step, formData }));
-  }, [step, formData]);
+  }, [step, formData, questions.length]);
 
   useEffect(() => {
     // Load form progress from localStorage on component mount
@@ -153,7 +153,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, initialData, onCanc
         handleReferenceChange(index, 'value', imageUrl);
       } catch (error) {
         console.error('Error uploading image:', error);
-        alert('Failed to upload image. Please try again.');
+        alert('Must be authenticated to upload images.');
       }
     }
   };

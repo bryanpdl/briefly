@@ -30,7 +30,8 @@ export default function Home() {
   const [isPaidUser, setIsPaidUser] = useState(false);
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [generatedLink, setGeneratedLink] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  // Remove the unused isLoading state
+  // const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -81,16 +82,12 @@ export default function Home() {
   }, [showLinkModal]);
 
   const handleFormSubmit = async (data: ProjectFormData) => {
-    if (!isClient) return;
-    setIsLoading(true);
     try {
-      // Convert Date to string for API call and storage
-      const dataForApi = {
+      const formattedData = {
         ...data,
-        deadline: data.deadline ? format(data.deadline, 'yyyy-MM-dd') : null,
+        deadline: data.deadline ? format(data.deadline, 'yyyy-MM-dd') : null
       };
-      const generatedBrief = await generateBrief(dataForApi);
-      console.log("Full generated brief:", generatedBrief);
+      const generatedBrief = await generateBrief(formattedData);
       setBrief(generatedBrief);
       setFormData(data);
       setShowForm(false);
@@ -105,8 +102,6 @@ export default function Home() {
       localStorage.removeItem('formProgress');
     } catch (error) {
       console.error('Error generating brief:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 

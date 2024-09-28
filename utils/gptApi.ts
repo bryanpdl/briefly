@@ -9,7 +9,7 @@ interface ProjectFormData {
   projectType: string;
   projectName: string;
   goals: string;
-  deadline: string | null;  // Update this line
+  deadline: string | null;
   budget: string;
   budgetBreakdown: { item: string; amount: string }[];
   references: { type: 'link' | 'image'; value: string }[];
