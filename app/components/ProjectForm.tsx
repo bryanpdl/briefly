@@ -1,343 +1,386 @@
-import React, { useState, ChangeEvent, FormEvent } from 'react';
-import { Link, Image as ImageIcon, X } from 'lucide-react';
-import { uploadImage } from '@/utils/imageUpload';
+import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { uploadImage } from '../../utils/imageUpload';
+import LoadingAnimation from './LoadingAnimation';
 
-const projectType = { value: 'design', label: 'Design' };
-
-interface FormData {
+interface ProjectFormData {
+  projectType: string;
   projectName: string;
   goals: string;
-  deadline: string;
+  deadline: Date | null;
   budget: string;
   budgetBreakdown: { item: string; amount: string }[];
   references: { type: 'link' | 'image'; value: string }[];
 }
 
 interface ProjectFormProps {
-  onSubmit: (data: FormData & { projectType: string }) => void;
-  initialData?: FormData | null;
-  onCancelEdit?: () => void; // Add this prop
+  onSubmit: (data: ProjectFormData) => void;
+  initialData?: ProjectFormData | null;
+  onCancelEdit?: () => void;
 }
 
 const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, initialData, onCancelEdit }) => {
-  const [formData, setFormData] = useState<FormData>({
+  const [step, setStep] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [formData, setFormData] = useState<ProjectFormData>({
+    projectType: initialData?.projectType || 'design',
     projectName: initialData?.projectName || '',
     goals: initialData?.goals || '',
-    deadline: initialData?.deadline || '',
+    deadline: initialData?.deadline || null,
     budget: initialData?.budget || '',
     budgetBreakdown: initialData?.budgetBreakdown || [{ item: '', amount: '' }],
     references: initialData?.references || [],
   });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [showBudgetBreakdown, setShowBudgetBreakdown] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prevData => ({
-      ...prevData,
-      [name]: value,
-    }));
+  const questions = [
+    { key: 'projectName', question: "What's the name of your project?", emoji: '📝' },
+    { key: 'goals', question: "What are the main goals of your project?", emoji: '🎯' },
+    { key: 'deadline', question: "When do you need this project completed?", emoji: '⏳' },
+    { key: 'budget', question: "What's your budget for this project?", emoji: '💰' },
+    { key: 'budgetBreakdown', question: "Let's break down your budget:", emoji: '💰' },
+    { key: 'references', question: "Do you have any references or inspirations?", emoji: '🔗' },
+  ];
+
+  useEffect(() => {
+    const newProgress = ((step + 1) / questions.length) * 100;
+    setProgress(newProgress);
+
+    // Save form progress to localStorage
+    localStorage.setItem('formProgress', JSON.stringify({ step, formData }));
+  }, [step, formData]);
+
+  useEffect(() => {
+    // Load form progress from localStorage on component mount
+    const savedProgress = localStorage.getItem('formProgress');
+    if (savedProgress) {
+      const { step: savedStep, formData: savedFormData } = JSON.parse(savedProgress);
+      setStep(savedStep);
+      setFormData((prevData) => ({
+        ...prevData,
+        ...savedFormData,
+        deadline: savedFormData.deadline ? new Date(savedFormData.deadline) : null,
+      }));
+    }
+  }, []);
+
+  const formatNumber = (value: string) => {
+    // Remove non-numeric characters except for the decimal point
+    value = value.replace(/[^\d.]/g, '');
+    
+    // Ensure only one decimal point
+    const parts = value.split('.');
+    if (parts.length > 2) {
+      parts.pop();
+      value = parts.join('.');
+    }
+    
+    // Format with commas for thousands
+    const formatted = Number(value).toLocaleString('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
+    
+    return formatted === '0' ? '' : formatted;
   };
 
-  const handleBudgetBreakdownChange = (index: number, e: ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    if (name === 'budget') {
+      setFormData(prev => ({ ...prev, [name]: formatNumber(value) }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleDateChange = (date: Date | null) => {
+    setFormData(prev => ({ ...prev, deadline: date }));
+  };
+
+  const handleBudgetBreakdownChange = (index: number, field: 'item' | 'amount', value: string) => {
     const newBudgetBreakdown = [...formData.budgetBreakdown];
-    newBudgetBreakdown[index] = { ...newBudgetBreakdown[index], [name]: value };
-    setFormData(prevData => ({
-      ...prevData,
-      budgetBreakdown: newBudgetBreakdown,
+    if (field === 'amount') {
+      newBudgetBreakdown[index][field] = formatNumber(value);
+    } else {
+      newBudgetBreakdown[index][field] = value;
+    }
+    setFormData(prev => ({ ...prev, budgetBreakdown: newBudgetBreakdown }));
+  };
+
+  const removeBudgetItem = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      budgetBreakdown: prev.budgetBreakdown.filter((_, i) => i !== index),
     }));
   };
 
-  const addBudgetBreakdownItem = () => {
-    setFormData(prevData => ({
-      ...prevData,
-      budgetBreakdown: [...prevData.budgetBreakdown, { item: '', amount: '' }],
+  const addBudgetItem = () => {
+    setFormData(prev => ({
+      ...prev,
+      budgetBreakdown: [...prev.budgetBreakdown, { item: '', amount: '' }],
     }));
   };
 
-  const removeBudgetBreakdownItem = (index: number) => {
-    const newBudgetBreakdown = formData.budgetBreakdown.filter((_, i) => i !== index);
-    setFormData(prevData => ({
-      ...prevData,
-      budgetBreakdown: newBudgetBreakdown,
+  const handleReferenceChange = (index: number, field: 'type' | 'value', value: string) => {
+    const newReferences = [...formData.references];
+    newReferences[index][field] = value as 'link' | 'image';
+    setFormData(prev => ({ ...prev, references: newReferences }));
+  };
+
+  const removeReference = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      references: prev.references.filter((_, i) => i !== index),
     }));
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const addReference = () => {
+    setFormData(prev => ({
+      ...prev,
+      references: [...prev.references, { type: 'link', value: '' }],
+    }));
+  };
+
+  const handleImageUpload = async (index: number) => {
+    if (fileInputRef.current && fileInputRef.current.files && fileInputRef.current.files[0]) {
+      const file = fileInputRef.current.files[0];
+      try {
+        const imageUrl = await uploadImage(file);
+        handleReferenceChange(index, 'value', imageUrl);
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        alert('Failed to upload image. Please try again.');
+      }
+    }
+  };
+
+  const handleNext = () => {
+    if (step < questions.length - 1) {
+      setStep(prev => prev + 1);
+    } else {
+      onSubmit(formData);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (step > 0) {
+      setStep(prev => prev - 1);
+    }
+  };
+
+  const handleSubmit = async () => {
     setIsLoading(true);
-    setError(null);
-
-    // Format reference values
-    const formattedReferences = formData.references.map(ref => ({
-      ...ref,
-      value: formatReferenceValue(ref.value),
-    }));
-
     try {
-      await onSubmit({ ...formData, references: formattedReferences, projectType: projectType.value });
-    } catch {
-      setError('Failed to generate brief. Please try again.');
+      await onSubmit(formData);
+      // Clear form progress from localStorage after successful submission
+      localStorage.removeItem('formProgress');
+    } catch (error) {
+      console.error('Error submitting form:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleAddReference = (type: 'link' | 'image') => {
-    setFormData(prevData => ({
-      ...prevData,
-      references: [...prevData.references, { type, value: '' }],
-    }));
-  };
+  const currentQuestion = questions[step];
 
-  const handleReferenceChange = (index: number, value: string) => {
-    const newReferences = [...formData.references];
-    newReferences[index].value = value;
-    setFormData(prevData => ({
-      ...prevData,
-      references: newReferences,
-    }));
-  };
-
-  const formatReferenceValue = (value: string) => {
-    return value.match(/^https?:\/\//) ? value : `https://${value}`;
-  };
-
-  const handleRemoveReference = (index: number) => {
-    setFormData(prevData => ({
-      ...prevData,
-      references: prevData.references.filter((_, i) => i !== index),
-    }));
-  };
-
-  const handleImageUpload = async (index: number, file: File) => {
-    try {
-      console.log('Uploading image:', file.name);
-      const imageUrl = await uploadImage(file);
-      console.log('Image uploaded successfully:', imageUrl);
-      handleReferenceChange(index, imageUrl);
-      
-      // Update the UI to show the uploaded image
-      const updatedReferences = [...formData.references];
-      updatedReferences[index] = { type: 'image', value: imageUrl };
-      setFormData(prevData => ({
-        ...prevData,
-        references: updatedReferences,
-      }));
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      alert('Failed to upload image. Please try again.');
+  const renderInput = (key: keyof ProjectFormData) => {
+    switch (key) {
+      case 'projectName':
+        return (
+          <input
+            type="text"
+            name={key}
+            value={formData[key] as string}
+            onChange={handleInputChange}
+            className="w-full p-2 border rounded min-h-[48px]"
+          />
+        );
+      case 'goals':
+        return (
+          <textarea
+            name={key}
+            value={formData[key] as string}
+            onChange={handleInputChange}
+            className="w-full p-2 border rounded min-h-[120px]"
+          />
+        );
+      case 'deadline':
+        return (
+          <DatePicker
+            selected={formData.deadline}
+            onChange={handleDateChange}
+            className="w-full p-2 border rounded"
+          />
+        );
+      case 'budget':
+        return (
+          <input
+            type="text"
+            name={key}
+            value={formData[key] as string}
+            onChange={handleInputChange}
+            inputMode="decimal"
+            className="w-full p-2 border rounded min-h-[48px]"
+          />
+        );
+      case 'budgetBreakdown':
+        return (
+          <div>
+            {formData.budgetBreakdown.map((item, index) => (
+              <div key={index} className="flex mb-2">
+                <input
+                  type="text"
+                  value={item.item}
+                  onChange={(e) => handleBudgetBreakdownChange(index, 'item', e.target.value)}
+                  placeholder="Item"
+                  className="w-1/3 p-2 border rounded mr-2"
+                />
+                <input
+                  type="text"
+                  value={item.amount}
+                  onChange={(e) => handleBudgetBreakdownChange(index, 'amount', e.target.value)}
+                  placeholder="Amount"
+                  inputMode="decimal"
+                  className="w-1/3 p-2 border rounded mr-2"
+                />
+                <button
+                  onClick={() => removeBudgetItem(index)}
+                  className="w-1/3 btn-danger"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+            <button onClick={addBudgetItem} className="btn-secondary mt-2">Add Budget Item</button>
+          </div>
+        );
+      case 'references':
+        return (
+          <div>
+            {formData.references.map((ref, index) => (
+              <div key={index} className="flex mb-2">
+                <select
+                  value={ref.type}
+                  onChange={(e) => handleReferenceChange(index, 'type', e.target.value)}
+                  className="w-1/4 p-2 border rounded mr-2"
+                >
+                  <option value="link">Link</option>
+                  <option value="image">Image</option>
+                </select>
+                {ref.type === 'link' ? (
+                  <input
+                    type="text"
+                    value={ref.value}
+                    onChange={(e) => handleReferenceChange(index, 'value', e.target.value)}
+                    placeholder="Enter URL"
+                    className="w-1/2 p-2 border rounded mr-2"
+                  />
+                ) : (
+                  <div className="w-1/2 flex mr-2">
+                    <input
+                      type="text"
+                      value={ref.value}
+                      onChange={(e) => handleReferenceChange(index, 'value', e.target.value)}
+                      placeholder="Enter image URL or upload"
+                      className="w-2/3 p-2 border rounded mr-2"
+                    />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={fileInputRef}
+                      onChange={() => handleImageUpload(index)}
+                      className="hidden"
+                    />
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-1/3 btn-secondary"
+                    >
+                      Upload
+                    </button>
+                  </div>
+                )}
+                <button
+                  onClick={() => removeReference(index)}
+                  className="w-1/4 btn-danger"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+            <button onClick={addReference} className="btn-secondary mt-2">Add Reference</button>
+          </div>
+        );
+      default:
+        return null;
     }
   };
 
+  const pageVariants = {
+    initial: { opacity: 0, x: -50 },
+    in: { opacity: 1, x: 0 },
+    out: { opacity: 0, x: 50 }
+  };
+
+  const pageTransition = {
+    type: "tween",
+    ease: "anticipate",
+    duration: 0.5
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">Project Type</label>
-        <div className="input-field flex items-center">
-          <span>{projectType.label}</span>
-        </div>
+    <div className="max-w-[672px] mx-auto mt-10">
+      {isLoading && <LoadingAnimation />}
+      <div className="text-left mb-4">
+        <span className="text-6xl">{currentQuestion.emoji}</span>
       </div>
-
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">Project Name</label>
-        <input
-          type="text"
-          name="projectName"
-          value={formData.projectName}
-          onChange={handleInputChange}
-          className="input-field"
-          placeholder="Enter project name"
-          required
-        />
-      </div>
-
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">Project Goals</label>
-        <textarea
-          name="goals"
-          value={formData.goals}
-          onChange={handleInputChange}
-          className="input-field"
-          placeholder="Describe your project goals"
-          rows={4}
-          required
-        />
-      </div>
-
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">Deadline</label>
-        <input
-          type="date"
-          name="deadline"
-          value={formData.deadline}
-          onChange={handleInputChange}
-          className="input-field"
-          required
-        />
-      </div>
-
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">Budget</label>
-        <input
-          type="number"
-          name="budget"
-          value={formData.budget}
-          onChange={handleInputChange}
-          className="input-field"
-          placeholder="Enter total budget amount"
-          required
-        />
-      </div>
-
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">
-          <input
-            type="checkbox"
-            name="showBudgetBreakdown"
-            checked={showBudgetBreakdown}
-            onChange={() => setShowBudgetBreakdown(!showBudgetBreakdown)}
-            className="mr-2"
-          />
-          Show Budget Breakdown
-        </label>
-      </div>
-
-      {showBudgetBreakdown && (
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">Budget Breakdown</label>
-          {formData.budgetBreakdown.map((item, index) => (
-            <div key={index} className="flex items-center mb-2">
-              <input
-                type="text"
-                name="item"
-                value={item.item}
-                onChange={(e) => handleBudgetBreakdownChange(index, e)}
-                className="input-field mr-2"
-                placeholder="Item"
-                required
-              />
-              <input
-                type="number"
-                name="amount"
-                value={item.amount}
-                onChange={(e) => handleBudgetBreakdownChange(index, e)}
-                className="input-field mr-2"
-                placeholder="Amount"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => removeBudgetBreakdownItem(index)}
-                className="btn-danger"
-              >
-                Remove
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={step}
+          initial="initial"
+          animate="in"
+          exit="out"
+          variants={pageVariants}
+          transition={pageTransition}
+          className="mt-4 p-6 bg-[#FEFBFC] rounded-lg outline outline-1 outline-[#EBE0E3] shadow-md"
+        >
+          <h2 className="text-xl font-bold mb-4">{currentQuestion.question}</h2>
+          {renderInput(currentQuestion.key as keyof ProjectFormData)}
+          <div className="mt-4 flex justify-between">
+            {step > 0 && (
+              <button onClick={handlePrevious} className="btn-secondary">
+                Previous
               </button>
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={addBudgetBreakdownItem}
-            className="btn-success"
-          >
-            Add Item
-          </button>
-        </div>
-      )}
-
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">References</label>
-        {formData.references.map((ref, index) => (
-          <div key={index} className="flex items-center mb-2">
-            {ref.type === 'link' ? (
-              <input
-                type="text"
-                value={ref.value}
-                onChange={(e) => handleReferenceChange(index, e.target.value)}
-                className="input-field flex-grow"
-                placeholder="Enter link URL"
-              />
-            ) : (
-              <div className="flex items-center">
-                {ref.value ? (
-                  <>
-                    <span className="mr-2">Image uploaded</span>
-                    <a
-                      href={ref.value}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline"
-                    >
-                      View
-                    </a>
-                  </>
-                ) : (
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        handleImageUpload(index, file);
-                      }
-                    }}
-                    className="input-field flex-grow"
-                  />
-                )}
-              </div>
             )}
-            <button
-              type="button"
-              onClick={() => handleRemoveReference(index)}
-              className="btn-danger ml-2"
+            <button 
+              onClick={step === questions.length - 1 ? handleSubmit : handleNext} 
+              className="btn-primary"
+              disabled={isLoading}
             >
-              <X className="w-4 h-4" />
+              {step === questions.length - 1 ? 'Submit' : 'Next'}
             </button>
           </div>
-        ))}
-        <div className="flex space-x-2">
-          <button
-            type="button"
-            onClick={() => handleAddReference('link')}
-            className="btn-secondary flex items-center"
-          >
-            <Link className="w-4 h-4 mr-2" />
-            Add Link
-          </button>
-          <button
-            type="button"
-            onClick={() => handleAddReference('image')}
-            className="btn-secondary flex items-center"
-          >
-            <ImageIcon className="w-4 h-4 mr-2" />
-            Add Image
+        </motion.div>
+      </AnimatePresence>
+      <div className="mt-4 bg-gray-200 rounded-full overflow-hidden">
+        <motion.div
+          className="bg-[#35AF89] h-2"
+          initial={{ width: 0 }}
+          animate={{ width: `${progress}%` }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+        />
+      </div>
+      {onCancelEdit && (
+        <div className="mt-8">
+          <button onClick={onCancelEdit} className="btn-inverted">
+            Cancel Edit
           </button>
         </div>
-      </div>
-
-      {error && <p className="text-red-600">{error}</p>}
-
-      <button
-        type="submit"
-        className={`btn-primary w-full ${isLoading ? 'bg-secondary text-white hover:bg-secondary cursor-not-allowed' : ''}`}
-        disabled={isLoading}
-      >
-        {isLoading ? 'Generating Brief...' : 'Generate Brief'}
-      </button>
-
-      {onCancelEdit && (
-        <button
-          type="button"
-          onClick={onCancelEdit}
-          className="btn-inverted w-full mt-2"
-        >
-          Cancel Edit
-        </button>
       )}
-    </form>
+    </div>
   );
 };
 

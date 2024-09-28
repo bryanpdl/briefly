@@ -175,11 +175,18 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, projectName, onEdit,
               {isPaidUser && (
                 <button
                   onClick={() => handleRegenerateSection(section.title)}
-                  className="btn-regenerate"
+                  className="btn-regenerate mb-3"
                   disabled={regeneratingSection === section.title}
+                  title="Regenerate section"
                 >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  {regeneratingSection === section.title ? 'Regenerating...' : 'Regenerate'}
+                  {regeneratingSection === section.title ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Regenerating...
+                    </>
+                  ) : (
+                    <RefreshCw className="w-4 h-4" />
+                  )}
                 </button>
               )}
             </div>

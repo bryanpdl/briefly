@@ -18,7 +18,7 @@ interface BriefData {
 
 const BriefPage = () => {
   const params = useParams();
-  const slug = params.slug as string;
+  const slug = params?.slug as string;
   const [briefData, setBriefData] = useState<BriefData | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
 

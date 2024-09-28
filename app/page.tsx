@@ -8,13 +8,14 @@ import { signInWithGoogle, signOut, checkUserSubscription } from '../utils/auth'
 import { User } from 'firebase/auth';
 import { auth } from '../utils/firebaseConfig';
 import LinkModal from './components/LinkModal';
-import Image from 'next/image'; // Import Image from next/image
+import Image from 'next/image';
+import { format } from 'date-fns'; // Add this import
 
 interface ProjectFormData {
   projectType: string;
   projectName: string;
   goals: string;
-  deadline: string;
+  deadline: Date | null; // Change this to match ProjectForm.tsx
   budget: string;
   budgetBreakdown: { item: string; amount: string }[];
   references: { type: 'link' | 'image'; value: string }[];
@@ -29,6 +30,7 @@ export default function Home() {
   const [isPaidUser, setIsPaidUser] = useState(false);
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [generatedLink, setGeneratedLink] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -46,10 +48,26 @@ export default function Home() {
     const persistedBrief = localStorage.getItem('persistedBrief');
     const persistedFormData = localStorage.getItem('persistedFormData');
     const persistedShowForm = localStorage.getItem('persistedShowForm');
+    const persistedFormProgress = localStorage.getItem('formProgress');
 
     if (persistedBrief) setBrief(persistedBrief);
-    if (persistedFormData) setFormData(JSON.parse(persistedFormData));
+    if (persistedFormData) {
+      const parsedData = JSON.parse(persistedFormData);
+      setFormData({
+        ...parsedData,
+        deadline: parsedData.deadline ? new Date(parsedData.deadline) : null,
+      });
+    }
     if (persistedShowForm) setShowForm(persistedShowForm === 'true');
+    if (persistedFormProgress) {
+      const { formData: savedFormData } = JSON.parse(persistedFormProgress);
+      setFormData((prevData) => ({
+        ...prevData,
+        ...savedFormData,
+        deadline: savedFormData.deadline ? new Date(savedFormData.deadline) : null,
+      }));
+      setShowForm(true);
+    }
 
     return () => unsubscribe();
   }, []);
@@ -64,8 +82,14 @@ export default function Home() {
 
   const handleFormSubmit = async (data: ProjectFormData) => {
     if (!isClient) return;
+    setIsLoading(true);
     try {
-      const generatedBrief = await generateBrief(data);
+      // Convert Date to string for API call and storage
+      const dataForApi = {
+        ...data,
+        deadline: data.deadline ? format(data.deadline, 'yyyy-MM-dd') : null,
+      };
+      const generatedBrief = await generateBrief(dataForApi);
       console.log("Full generated brief:", generatedBrief);
       setBrief(generatedBrief);
       setFormData(data);
@@ -73,10 +97,16 @@ export default function Home() {
 
       // Persist state to localStorage
       localStorage.setItem('persistedBrief', generatedBrief);
-      localStorage.setItem('persistedFormData', JSON.stringify(data));
+      localStorage.setItem('persistedFormData', JSON.stringify({
+        ...data,
+        deadline: data.deadline ? data.deadline.toISOString() : null,
+      }));
       localStorage.setItem('persistedShowForm', 'false');
+      localStorage.removeItem('formProgress');
     } catch (error) {
       console.error('Error generating brief:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -125,6 +155,8 @@ export default function Home() {
     setShowForm(false);
     // Update localStorage
     localStorage.setItem('persistedShowForm', 'false');
+    // Clear form progress
+    localStorage.removeItem('formProgress');
   };
 
   if (!isClient) {
@@ -132,13 +164,16 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col min-h-screen">
       <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="py-12 max-w-2xl mx-auto"> {/* Add max-w-2xl and mx-auto here */}
+        <div className="py-12 max-w-2xl mx-auto">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-6xl font-bold">briefly.</h1>
+            <h1 className="text-6xl font-bold flex items-center">
+              <span className="mr-2" role="img" aria-label="Grape">🍇</span>
+              briefberry.
+            </h1>
             {user ? (
-              <div className="flex items-center">
+              <div className="flex items-center mb-4">
                 {user.photoURL && (
                   <Image
                     src={user.photoURL}
@@ -158,7 +193,7 @@ export default function Home() {
             <ProjectForm 
               onSubmit={handleFormSubmit} 
               initialData={formData} 
-              onCancelEdit={formData ? handleCancelEdit : undefined} // Pass the cancel edit handler
+              onCancelEdit={formData ? handleCancelEdit : undefined}
             />
           ) : (
             <ProjectBrief 

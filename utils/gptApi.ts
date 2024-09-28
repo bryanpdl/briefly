@@ -9,7 +9,7 @@ interface ProjectFormData {
   projectType: string;
   projectName: string;
   goals: string;
-  deadline: string;
+  deadline: string | null;  // Update this line
   budget: string;
   budgetBreakdown: { item: string; amount: string }[];
   references: { type: 'link' | 'image'; value: string }[];
@@ -36,7 +36,7 @@ export async function generateBrief(formData: ProjectFormData) {
     Project Type: ${formData.projectType}
     Project Name: ${formData.projectName}
     Goals: ${formData.goals}
-    Deadline: ${formData.deadline}
+    Deadline: ${formData.deadline || 'Not specified'}
     Budget: $${formData.budget}
     Budget Breakdown:
     ${budgetBreakdown}
