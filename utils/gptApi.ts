@@ -32,7 +32,8 @@ export async function generateBrief(formData: ProjectFormData) {
 
   console.log('References being sent to GPT:', references);
 
-  const prompt = `Generate a professional but personable project brief from the perspective of the client, also incorporating information from the web if needed, based on the following information:
+  const prompt = `Generate a professional and casual project brief based on the following input. Avoid referencing the project name directly in the brief. Instead, 
+  provide a high-level summary of the project's purpose and goals in a natural style. Keep the tone approachable and avoid overly formal or robotic phrases. Also incorporate information from the web if needed. Here is the provided information:
     Project Type: ${formData.projectType}
     Project Name: ${formData.projectName}
     Goals: ${formData.goals}
@@ -44,7 +45,7 @@ export async function generateBrief(formData: ProjectFormData) {
     ${references}
     
     Please follow these guidelines:
-    1. Write the brief as if the client is describing their project requirements and expectations, and in a way that is both professional and casual. Use polite, clear language and avoid complex grammar. The response should be easy to understand for users who may not speak fluent English. Avoid using jargon, and explain any technical terms in simple words.
+    1. Write the brief as if the client is describing their project requirements and expectations, and in a way that is both professional and casual. Use clear language and avoid complex grammar and jargon. Avoid the terms "revamp", "breathe new life", or "refresh" in the brief. The response should be easy to understand for users who may not speak fluent English, and explain any technical terms in simple words.
     2. Start with an "Introduction:" section that outlines the project's purpose and main goals.
     3. Include separate sections for "Goals:", "Timeline:", "Budget:", "References:", and "Conclusion:".
     4. Format each main section with a capitalized title followed by a colon, on its own line (e.g., "Introduction:", "Goals:", etc.).
@@ -61,18 +62,27 @@ export async function generateBrief(formData: ProjectFormData) {
 
   console.log('Prompt being sent to GPT:', prompt);
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4",
-    messages: [{ role: "user", content: prompt }],
-    max_tokens: 1000,
-  });
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 1000,
+    });
 
-  console.log("API Response:", response);
+    console.log("Full API Response:", JSON.stringify(response, null, 2));
 
-  const generatedBrief = response.choices[0].message.content?.trim() || '';
-  console.log("Generated Brief:", generatedBrief);
-
-  return generatedBrief;
+    if (response.choices && response.choices.length > 0 && response.choices[0].message) {
+      const generatedBrief = response.choices[0].message.content?.trim() || '';
+      console.log("Generated Brief:", generatedBrief);
+      return generatedBrief;
+    } else {
+      console.error("Unexpected API response structure:", response);
+      throw new Error("Failed to generate brief: Unexpected API response structure");
+    }
+  } catch (error) {
+    console.error("Error generating brief:", error);
+    throw error;
+  }
 }
 
 export async function regenerateSection(brief: string, sectionName: string) {
@@ -83,7 +93,7 @@ ${brief}
 Please provide only the regenerated content for the "${sectionName}" section, without the section title.`;
 
   const response = await openai.chat.completions.create({
-    model: "gpt-4",
+    model: "gpt-4",  // Updated to use GPT-4 Turbo
     messages: [{ role: "user", content: prompt }],
     max_tokens: 500,
   });

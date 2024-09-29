@@ -161,28 +161,30 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="py-12 max-w-2xl mx-auto">
+        <div className="py-6 sm:py-12 max-w-2xl mx-auto">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-6xl font-bold flex items-center">
-              <span className="mr-2" role="img" aria-label="Grape">🍇</span>
-              briefberry.
+            <h1 className="flex items-center">
+              <span className="text-3xl sm:text-4xl md:text-5xl" role="img" aria-label="Grape">🍇</span>
+              <span className="text-3xl sm:text-4xl md:text-5xl font-bold ml-2">briefberry.</span>
             </h1>
-            {user ? (
-              <div className="flex items-center mb-4">
-                {user.photoURL && (
-                  <Image
-                    src={user.photoURL}
-                    alt={user.displayName || 'User'}
-                    width={32}
-                    height={32}
-                    className="rounded-full mr-2"
-                  />
-                )}
-                <button onClick={handleSignOut} className="btn-secondary">Sign Out</button>
-              </div>
-            ) : (
-              <button onClick={handleSignIn} className="btn-secondary">Sign In with Google</button>
-            )}
+            <div className="flex items-center mb-6">
+              {user ? (
+                <div className="flex items-center">
+                  {user.photoURL && (
+                    <Image
+                      src={user.photoURL}
+                      alt={user.displayName || 'User'}
+                      width={32}
+                      height={32}
+                      className="rounded-full mr-2"
+                    />
+                  )}
+                  <button onClick={handleSignOut} className="btn-secondary text-sm sm:text-base whitespace-nowrap">Sign Out</button>
+                </div>
+              ) : (
+                <button onClick={handleSignIn} className="btn-secondary text-sm sm:text-base whitespace-nowrap">Sign In with Google</button>
+              )}
+            </div>
           </div>
           {showForm ? (
             <ProjectForm 
@@ -194,6 +196,7 @@ export default function Home() {
             <ProjectBrief 
               brief={brief} 
               projectName={formData?.projectName || ''} 
+              projectType={formData?.projectType || ''} // Add this line
               onEdit={handleEditBrief} 
               onCreateNew={handleCreateNewBrief}
               onSave={handleSaveBrief}

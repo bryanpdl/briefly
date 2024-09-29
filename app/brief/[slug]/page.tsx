@@ -13,6 +13,7 @@ interface Section {
 
 interface BriefData {
   projectName: string;
+  projectType: string; // Add this line
   content: string;
   isPaidUser: boolean;
 }
@@ -112,11 +113,12 @@ const BriefPage = () => {
     <div className="container min-h-screen flex flex-col relative">
       {!briefData.isPaidUser && (
         <Link href="/" className="absolute top-4 left-4 text-sm text-gray-600 hover:text-gray-900">
-          Powered by <span className="font-bold">briefly</span>.
+          Powered by <span className="font-bold">briefberry</span>.
         </Link>
       )}
       <div className="py-12">
-        <h1 className="text-3xl font-bold mb-8">{briefData.projectName}</h1>
+        <h1 className="text-3xl font-bold mb-0">{briefData.projectName}</h1>
+        <h2 className="text-xl text-gray-600 mt-2 mb-8">{briefData.projectType}</h2> {/* Add this line */}
         <div className="brief-container">
           {sections.length > 0 ? (
             sections.map((section, index) => (

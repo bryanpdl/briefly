@@ -12,6 +12,7 @@ const LinkModal = dynamic(() => import('./LinkModal'), { ssr: false });
 interface ProjectBriefProps {
   brief: string;
   projectName: string;
+  projectType: string;
   onEdit: () => void;
   onCreateNew: () => void;
   onSave: (updatedBrief: string) => void;
@@ -19,17 +20,33 @@ interface ProjectBriefProps {
   onCreateLink: (link: string) => void;
 }
 
-const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, projectName, onEdit, onCreateNew, onSave, isPaidUser, onCreateLink }) => {
+const ProjectBrief: React.FC<ProjectBriefProps> = ({ 
+  brief, 
+  projectName, 
+  projectType, 
+  onEdit, 
+  onCreateNew, 
+  onSave, 
+  isPaidUser, 
+  onCreateLink 
+}) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedBrief, setEditedBrief] = useState(brief);
   const [regeneratingSection, setRegeneratingSection] = useState<string | null>(null);
   const [sections, setSections] = useState<{ title: string; content: string }[]>([]);
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [generatedLink, setGeneratedLink] = useState('');
+  const [isCreatingLink, setIsCreatingLink] = useState(false);
 
   useEffect(() => {
-    const parsedSections = parseBriefIntoSections(brief);
-    setSections(parsedSections);
+    try {
+      const parsedSections = parseBriefIntoSections(brief);
+      setSections(parsedSections);
+    } catch (error) {
+      console.error("Error parsing brief:", error);
+      // Set a default section if parsing fails
+      setSections([{ title: "Error", content: "Failed to parse the brief. Please try regenerating." }]);
+    }
   }, [brief]);
 
   const parseBriefIntoSections = (text: string) => {
@@ -99,16 +116,20 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, projectName, onEdit,
   };
 
   const handleCreateLink = async () => {
+    setIsCreatingLink(true);
     const slug = Math.random().toString(36).substring(2, 15);
     const uniqueLink = `${window.location.origin}/brief/${slug}`;
     try {
-      await saveBriefData(slug, projectName, editedBrief, isPaidUser);
+      const docId = await saveBriefData(slug, projectName, projectType, editedBrief, isPaidUser);
+      console.log('Saved brief with document ID:', docId);
       setGeneratedLink(uniqueLink);
       onCreateLink(uniqueLink);
       setShowLinkModal(true);
     } catch (error) {
       console.error('Error saving brief data:', error);
       alert('Failed to create link. Please try again.');
+    } finally {
+      setIsCreatingLink(false);
     }
   };
 
@@ -165,7 +186,8 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, projectName, onEdit,
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold mb-4">{projectName}</h1>
+      <h1 className="text-3xl font-bold -mb-4">{projectName}</h1>
+      <h2 className="text-xl text-gray-600 mb-4">{projectType}</h2>
       <button onClick={handleEditForm} className="btn-inverted">
         <ArrowLeft className="w-5 h-5 mr-2" />
         Edit Form
@@ -226,9 +248,22 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, projectName, onEdit,
                 Edit
               </button>
               
-              <button onClick={handleCreateLink} className="btn-primary">
-                <Link className="w-5 h-5 mr-2" />
-                Create Link
+              <button 
+                onClick={handleCreateLink} 
+                className="btn-primary"
+                disabled={isCreatingLink}
+              >
+                {isCreatingLink ? (
+                  <>
+                    <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+                    Creating link...
+                  </>
+                ) : (
+                  <>
+                    <Link className="w-5 h-5 mr-2" />
+                    Create Link
+                  </>
+                )}
               </button>
               {isPaidUser && (
                 <>
@@ -260,12 +295,14 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({ brief, projectName, onEdit,
         )}
       </div>
       
-      <div className="mt-4">
-        <button onClick={onCreateNew} className="btn-inverted">
-          <FilePlus className="w-5 h-5 mr-2" />
-          Create New Brief
-        </button>
-      </div>
+      {!isEditing && (
+        <div className="mt-4">
+          <button onClick={onCreateNew} className="btn-inverted">
+            <FilePlus className="w-5 h-5 mr-2" />
+            Create New Brief
+          </button>
+        </div>
+      )}
 
       {showLinkModal && (
         <LinkModal

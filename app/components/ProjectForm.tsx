@@ -25,7 +25,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, initialData, onCanc
   const [step, setStep] = useState(0);
   const [progress, setProgress] = useState(0);
   const [formData, setFormData] = useState<ProjectFormData>({
-    projectType: initialData?.projectType || 'design',
+    projectType: initialData?.projectType || 'Web App',
     projectName: initialData?.projectName || '',
     goals: initialData?.goals || '',
     deadline: initialData?.deadline || null,
@@ -38,6 +38,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, initialData, onCanc
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const questions = [
+    { key: 'projectType', question: "What's your type of project?", emoji: '📂' },
     { key: 'projectName', question: "What's the name of your project?", emoji: '📝' },
     { key: 'goals', question: "What are the main goals of your project?", emoji: '🎯' },
     { key: 'deadline', question: "When do you need this project completed?", emoji: '⏳' },
@@ -88,7 +89,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, initialData, onCanc
     return formatted === '0' ? '' : formatted;
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     if (name === 'budget') {
       setFormData(prev => ({ ...prev, [name]: formatNumber(value) }));
@@ -189,6 +190,22 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, initialData, onCanc
 
   const renderInput = (key: keyof ProjectFormData) => {
     switch (key) {
+      case 'projectType':
+        return (
+          <select
+            name={key}
+            value={formData[key] as string}
+            onChange={handleInputChange}
+            className="w-full p-2 border rounded min-h-[48px]"
+          >
+            <option value="Web App">Web App</option>
+            <option value="UI/UX Design">UI/UX Design</option>
+            <option value="Mobile App">Mobile App</option>
+            <option value="Branding & Logo">Branding & Logo</option>
+            <option value="Illustration">Illustration</option>
+            <option value="3D Design">3D Design</option>
+          </select>
+        );
       case 'projectName':
         return (
           <input
@@ -376,7 +393,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, initialData, onCanc
       {onCancelEdit && (
         <div className="mt-8">
           <button onClick={onCancelEdit} className="btn-inverted">
-            Cancel Edit
+            Cancel Form Edit
           </button>
         </div>
       )}
