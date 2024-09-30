@@ -3,19 +3,21 @@
 import React, { useState, useEffect } from 'react';
 import ProjectForm from './components/ProjectForm';
 import ProjectBrief from './components/ProjectBrief';
+import LandingPage from './components/LandingPage';
 import { generateBrief } from '../utils/gptApi';
 import { signInWithGoogle, signOut, checkUserSubscription } from '../utils/auth';
 import { User } from 'firebase/auth';
 import { auth } from '../utils/firebaseConfig';
 import LinkModal from './components/LinkModal';
 import Image from 'next/image';
-import { format } from 'date-fns'; // Add this import
+import { format } from 'date-fns';
+import { ArrowRight, Check } from 'lucide-react';
 
 interface ProjectFormData {
   projectType: string;
   projectName: string;
   goals: string;
-  deadline: Date | null; // Change this to match ProjectForm.tsx
+  deadline: Date | null;
   budget: string;
   budgetBreakdown: { item: string; amount: string }[];
   references: { type: 'link' | 'image'; value: string }[];
@@ -30,13 +32,13 @@ export default function Home() {
   const [isPaidUser, setIsPaidUser] = useState(false);
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [generatedLink, setGeneratedLink] = useState('');
-  // Remove the unused isLoading state
-  // const [isLoading, setIsLoading] = useState(false);
+  const [showLandingPage, setShowLandingPage] = useState(true);
 
   useEffect(() => {
     setIsClient(true);
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       setUser(user);
+      setShowLandingPage(!user);
       if (user) {
         const isSubscribed = await checkUserSubscription(user.uid);
         setIsPaidUser(isSubscribed);
@@ -154,8 +156,16 @@ export default function Home() {
     localStorage.removeItem('formProgress');
   };
 
+  const handleGetStarted = () => {
+    handleSignIn();
+  };
+
   if (!isClient) {
     return null;
+  }
+
+  if (showLandingPage) {
+    return <LandingPage onGetStarted={handleGetStarted} />;
   }
 
   return (

@@ -362,7 +362,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, initialData, onCanc
           exit="out"
           variants={pageVariants}
           transition={pageTransition}
-          className="mt-4 p-6 bg-[#FEFBFC] rounded-lg outline outline-1 outline-[#EBE0E3] shadow-md"
+          className="mt-4 p-6 bg-[#FAFAFA] rounded-lg outline outline-1 outline-[#EBE0E3] shadow-md"
         >
           <h2 className="text-xl font-bold mb-4">{currentQuestion.question}</h2>
           {renderInput(currentQuestion.key as keyof ProjectFormData)}

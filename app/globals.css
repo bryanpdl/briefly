@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 :root {
-  --background: #FEFBFC;
+  --background: #fbfbfb;
   --foreground: #1C1A20;
-  --input-bg: #EBE1E4;
+  --input-bg: #e8e8e8;
   --input-border: #d1d1d1;
   --primary: #007bff;
   --primary-hover: #0056b3;
@@ -49,10 +49,10 @@ body {
 
 @layer components {
   .input-field {
-    @apply w-full px-4 py-3 text-base border rounded-lg bg-input-bg border-input-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+    @apply w-full px-4 py-3 text-base border rounded-lg bg-input-bg border-input-border focus:outline-none focus:ring-2 focus:ring-[#2C2C2C] focus:border-transparent;
   }
   .btn-primary {
-    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-[#402E33] hover:text-white transition duration-200 ease-in-out;
+    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-white bg-[#2C2C2C] border border-[#2C2C2C] rounded-md hover:bg-white hover:text-[#2C2C2C] transition duration-200 ease-in-out;
     transition: transform 0.2s ease-in-out;
   }
   .btn-icon {
@@ -60,7 +60,7 @@ body {
     transition: transform 0.2s ease-in-out;
   }
   .btn-secondary {
-    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-[#402E33] hover:text-white transition duration-200 ease-in-out;
+    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-[#2C2C2C] hover:text-white transition duration-200 ease-in-out;
     transition: transform 0.2s ease-in-out;
   }
   .btn-success {
@@ -68,11 +68,11 @@ body {
     transition: transform 0.2s ease-in-out;
   }
   .btn-danger {
-    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-[#402E33] hover:text-white transition duration-200 ease-in-out;
+    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-[#2C2C2C] hover:text-white transition duration-200 ease-in-out;
     transition: transform 0.2s ease-in-out;
   }
   .btn-inverted {
-    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-white bg-[#402E33] border rounded-md hover:bg-white hover:text-[#523944] hover:border-gray-300 transition duration-200 ease-in-out;
+    @apply flex items-center justify-center px-4 py-2 text-base font-semibold text-white bg-[#2C2C2C] border rounded-md hover:bg-white hover:text-[#2C2C2C] hover:border-gray-300 transition duration-200 ease-in-out;
     transition: transform 0.2s ease-in-out;
   }
   .btn-primary:hover .icon, .btn-icon:hover .icon, .btn-secondary:hover .icon, .btn-success:hover .icon, .btn-danger:hover .icon {

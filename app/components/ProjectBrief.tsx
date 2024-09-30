@@ -81,7 +81,7 @@ const ProjectBrief: React.FC<ProjectBriefProps> = ({
 
   const handleShare = () => {
     const subject = encodeURIComponent('Project Brief');
-    const body = encodeURIComponent(`Here is the project brief:\n\n${editedBrief}`);
+    const body = encodeURIComponent(editedBrief);
     const mailtoLink = `mailto:?subject=${subject}&body=${body}`;
     window.location.href = mailtoLink;
   };
