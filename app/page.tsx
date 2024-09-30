@@ -4,15 +4,13 @@ import React, { useState, useEffect } from 'react';
 import ProjectForm from './components/ProjectForm';
 import ProjectBrief from './components/ProjectBrief';
 import LandingPage from './components/LandingPage';
-import Avatar from './components/Avatar'; // Add this import
+import Avatar from './components/Avatar';
 import { generateBrief } from '../utils/gptApi';
 import { signOut, checkUserSubscription } from '../utils/auth';
 import { User } from 'firebase/auth';
 import { auth } from '../utils/firebaseConfig';
 import LinkModal from './components/LinkModal';
-import Image from 'next/image';
 import { format } from 'date-fns';
-import { ArrowRight, Check } from 'lucide-react';
 
 interface ProjectFormData {
   projectType: string;
