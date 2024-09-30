@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react';
 import ProjectForm from './components/ProjectForm';
 import ProjectBrief from './components/ProjectBrief';
 import LandingPage from './components/LandingPage';
+import Avatar from './components/Avatar'; // Add this import
 import { generateBrief } from '../utils/gptApi';
-import { signInWithGoogle, signOut, checkUserSubscription } from '../utils/auth';
+import { signOut, checkUserSubscription } from '../utils/auth';
 import { User } from 'firebase/auth';
 import { auth } from '../utils/firebaseConfig';
 import LinkModal from './components/LinkModal';
@@ -129,11 +130,13 @@ export default function Home() {
     console.log('Brief updated successfully');
   };
 
-  const handleSignIn = async () => {
-    const user = await signInWithGoogle();
+  const handleSignInSuccess = async () => {
+    const user = auth.currentUser;
     if (user) {
+      setUser(user);
       const isSubscribed = await checkUserSubscription(user.uid);
       setIsPaidUser(isSubscribed);
+      setShowLandingPage(false);
     }
   };
 
@@ -141,6 +144,7 @@ export default function Home() {
     await signOut();
     setUser(null);
     setIsPaidUser(false);
+    setShowLandingPage(true);
   };
 
   const handleCreateLink = (link: string) => {
@@ -156,16 +160,14 @@ export default function Home() {
     localStorage.removeItem('formProgress');
   };
 
-  const handleGetStarted = () => {
-    handleSignIn();
-  };
+ 
 
   if (!isClient) {
     return null;
   }
 
   if (showLandingPage) {
-    return <LandingPage onGetStarted={handleGetStarted} />;
+    return <LandingPage onGetStarted={handleSignInSuccess} />;
   }
 
   return (
@@ -178,21 +180,11 @@ export default function Home() {
               <span className="text-3xl sm:text-4xl md:text-5xl font-bold ml-2">briefberry.</span>
             </h1>
             <div className="flex items-center mb-6">
-              {user ? (
-                <div className="flex items-center">
-                  {user.photoURL && (
-                    <Image
-                      src={user.photoURL}
-                      alt={user.displayName || 'User'}
-                      width={32}
-                      height={32}
-                      className="rounded-full mr-2"
-                    />
-                  )}
-                  <button onClick={handleSignOut} className="btn-secondary text-sm sm:text-base whitespace-nowrap">Sign Out</button>
-                </div>
-              ) : (
-                <button onClick={handleSignIn} className="btn-secondary text-sm sm:text-base whitespace-nowrap">Sign In with Google</button>
+              {user && (
+                <Avatar 
+                  photoURL={user.photoURL}
+                  onSignOut={handleSignOut}
+                />
               )}
             </div>
           </div>
@@ -206,7 +198,7 @@ export default function Home() {
             <ProjectBrief 
               brief={brief} 
               projectName={formData?.projectName || ''} 
-              projectType={formData?.projectType || ''} // Add this line
+              projectType={formData?.projectType || ''}
               onEdit={handleEditBrief} 
               onCreateNew={handleCreateNewBrief}
               onSave={handleSaveBrief}

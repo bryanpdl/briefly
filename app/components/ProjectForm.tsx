@@ -368,7 +368,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, initialData, onCanc
           {renderInput(currentQuestion.key as keyof ProjectFormData)}
           <div className="mt-4 flex justify-between">
             {step > 0 && (
-              <button onClick={handlePrevious} className="btn-secondary">
+              <button onClick={handlePrevious} className="btn-primary">
                 Previous
               </button>
             )}

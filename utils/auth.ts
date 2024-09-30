@@ -1,5 +1,5 @@
 import { auth, googleProvider, db } from './firebaseConfig';
-import { signInWithPopup, User } from 'firebase/auth';
+import { signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, User } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 export const signInWithGoogle = async (): Promise<User | null> => {
@@ -46,4 +46,26 @@ export const checkUserSubscription = async (userId: string): Promise<boolean> =>
     return userData.subscribed === 'yes';
   }
   return false;
+};
+
+export const signInWithEmailPassword = async (email: string, password: string): Promise<User | null> => {
+  try {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    return result.user;
+  } catch (error) {
+    console.error("Error signing in with email/password", error);
+    return null;
+  }
+};
+
+export const createUserWithEmailPassword = async (email: string, password: string): Promise<User | null> => {
+  try {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    const user = result.user;
+    await createUserDocument(user);
+    return user;
+  } catch (error) {
+    console.error("Error creating user with email/password", error);
+    return null;
+  }
 };
