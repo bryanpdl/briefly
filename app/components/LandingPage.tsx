@@ -37,7 +37,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           AI-Powered Project Briefs for Designers
         </h1>
         <p className="text-xl mb-8 max-w-2xl">
-          Transform your ideas into comprehensive project briefs in seconds! Let AI craft your project brief while you focus on designing.
+          Transform your ideas into comprehensive project briefs in seconds! Let AI create your project brief while you focus on bringing your vision to life.
         </p>
         <div className="mb-12">
           <button onClick={handleGetStarted} className="btn-inverted text-lg px-8 py-3">
